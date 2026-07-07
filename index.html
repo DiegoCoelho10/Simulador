@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Simulador de Média | Gestão de RH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.browser.min.js"></script>
+<style>
+:root{
+  --navy-900:#081733;
+  --navy-800:#0D2350;
+  --navy-700:#14336E;
+  --navy-500:#1E4FA3;
+  --orange-500:#FF7A00;
+  --orange-400:#FF9633;
+  --orange-300:#FFB566;
+  --gold:#FFC93C;
+  --ice:#F2F6FF;
+  --ice-dim:#B9C7E4;
+  --success:#2EDB84;
+  --danger:#FF5C6C;
+  --card:rgba(255,255,255,.06);
+  --card-border:rgba(255,255,255,.12);
+  --radius:20px;
+  --font-display:'Sora',system-ui,sans-serif;
+  --font-body:'Inter',system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:var(--font-body);
+  background:var(--navy-900);
+  color:var(--ice);
+  overflow-x:hidden;
+  min-height:100dvh;
+}
+/* fundo com brilhos */
+.bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(600px 400px at 85% -10%, rgba(255,122,0,.22), transparent 60%),
+    radial-gradient(700px 500px at -20% 110%, rgba(30,79,163,.45), transparent 60%),
+    var(--navy-900);
+}
+.bg::after{
+  content:"";position:absolute;inset:0;
+  background-image:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+  background-size:26px 26px;
+  mask-image:linear-gradient(180deg,transparent,black 20%,black 80%,transparent);
+}
+.app{
+  position:relative;z-index:1;
+  max-width:480px;margin:0 auto;
+  min-height:100dvh;
+  display:flex;flex-direction:column;
+  padding:max(20px, env(safe-area-inset-top)) 20px max(28px, env(safe-area-inset-bottom));
+}
+/* topo */
+.brand{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:8px;
+}
+.brand-mark{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--orange-500),var(--orange-300));
+  display:grid;place-items:center;
+  font-family:var(--font-display);font-weight:800;font-size:17px;color:var(--navy-900);
+  box-shadow:0 4px 18px rgba(255,122,0,.35);
+}
+.brand-text{line-height:1.15}
+.brand-text b{font-family:var(--font-display);font-size:14px;letter-spacing:.4px;display:block}
+.brand-text span{font-size:11px;color:var(--ice-dim);letter-spacing:.6px;text-transform:uppercase}
+
+/* telas */
+.screen{display:none;flex:1;flex-direction:column;animation:fadeUp .45s ease both}
+.screen.active{display:flex}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ===== TELA 1: boas-vindas ===== */
+.hero{margin-top:8vh}
+.hero h1{
+  font-family:var(--font-display);font-weight:800;
+  font-size:clamp(30px,8.5vw,40px);line-height:1.12;
+  letter-spacing:-.5px;
+}
+.hero h1 em{
+  font-style:normal;
+  background:linear-gradient(90deg,var(--orange-400),var(--gold));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p{margin-top:12px;color:var(--ice-dim);font-size:15px;line-height:1.55}
+.field{margin-top:26px}
+.field label{
+  display:block;font-size:12px;font-weight:600;letter-spacing:.8px;
+  text-transform:uppercase;color:var(--orange-300);margin-bottom:8px;
+}
+.field input[type=text]{
+  width:100%;padding:16px 18px;font-size:17px;font-family:var(--font-body);
+  color:var(--ice);background:var(--card);
+  border:1.5px solid var(--card-border);border-radius:var(--radius);
+  outline:none;transition:border-color .2s, box-shadow .2s;
+}
+.field input[type=text]:focus{
+  border-color:var(--orange-500);
+  box-shadow:0 0 0 4px rgba(255,122,0,.18);
+}
+.periods{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.period-chip{
+  padding:14px 4px;border-radius:16px;border:1.5px solid var(--card-border);
+  background:var(--card);color:var(--ice);cursor:pointer;
+  text-align:center;transition:all .18s ease;
+  font-family:var(--font-display);
+}
+.period-chip b{display:block;font-size:20px;font-weight:800}
+.period-chip span{font-size:10px;letter-spacing:.5px;color:var(--ice-dim);text-transform:uppercase}
+.period-chip.selected{
+  background:linear-gradient(160deg,var(--orange-500),#E56500);
+  border-color:var(--orange-300);
+  transform:translateY(-2px);
+  box-shadow:0 8px 22px rgba(255,122,0,.35);
+}
+.period-chip.selected span{color:rgba(255,255,255,.85)}
+
+.btn{
+  width:100%;padding:18px;border:none;border-radius:var(--radius);
+  font-family:var(--font-display);font-weight:700;font-size:17px;
+  letter-spacing:.3px;cursor:pointer;
+  color:#fff;
+  background:linear-gradient(135deg,var(--orange-500),#E56500);
+  box-shadow:0 10px 28px rgba(255,122,0,.35);
+  transition:transform .15s ease, box-shadow .15s ease, opacity .2s;
+  margin-top:auto;
+}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.4;box-shadow:none;cursor:not-allowed}
+.btn.secondary{
+  background:var(--card);border:1.5px solid var(--card-border);
+  box-shadow:none;color:var(--ice);
+}
+.btn + .btn{margin-top:12px}
+
+/* ===== TELA 2: notas ===== */
+.hud{
+  position:sticky;top:10px;z-index:5;
+  background:rgba(13,35,80,.82);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1.5px solid var(--card-border);border-radius:var(--radius);
+  padding:14px 16px;margin:14px 0 6px;
+}
+.hud-row{display:flex;justify-content:space-between;align-items:baseline}
+.hud-row .who{font-size:13px;color:var(--ice-dim)}
+.hud-row .who b{color:var(--ice)}
+.hud-pts{font-family:var(--font-display);font-weight:800;font-size:22px;color:var(--orange-300)}
+.hud-pts small{font-size:12px;font-weight:600;color:var(--ice-dim)}
+.bar{
+  height:10px;border-radius:99px;margin-top:10px;
+  background:rgba(255,255,255,.1);overflow:hidden;position:relative;
+}
+.bar-fill{
+  height:100%;width:0%;border-radius:99px;
+  background:linear-gradient(90deg,var(--orange-500),var(--gold));
+  transition:width .45s cubic-bezier(.22,1,.36,1);
+  box-shadow:0 0 12px rgba(255,169,64,.6);
+}
+.hud-hint{margin-top:8px;font-size:12px;color:var(--ice-dim);min-height:15px}
+.hud-hint b{color:var(--gold)}
+
+.block{
+  margin-top:16px;
+  background:var(--card);border:1.5px solid var(--card-border);
+  border-radius:var(--radius);padding:18px 16px;
+}
+.block-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.block-head h2{font-family:var(--font-display);font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
+.block-head .icon{
+  width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:15px;
+  background:rgba(255,122,0,.16);
+}
+.block-score{
+  font-family:var(--font-display);font-weight:700;font-size:13px;
+  padding:5px 11px;border-radius:99px;
+  background:rgba(255,255,255,.08);color:var(--ice-dim);
+  transition:all .3s;
+}
+.block-score.full{
+  background:rgba(46,219,132,.16);color:var(--success);
+}
+.grade-row{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);
+}
+.grade-row:last-child{border-bottom:none;padding-bottom:0}
+.grade-row:first-of-type{padding-top:0}
+.grade-info{flex:1;min-width:0}
+.grade-info b{display:block;font-size:14.5px;font-weight:600}
+.grade-info span{font-size:12px;color:var(--orange-300);font-weight:600}
+.grade-row input{
+  width:88px;padding:12px 10px;text-align:center;
+  font-family:var(--font-display);font-weight:700;font-size:17px;
+  color:var(--ice);background:rgba(255,255,255,.07);
+  border:1.5px solid var(--card-border);border-radius:14px;
+  outline:none;transition:border-color .2s, box-shadow .2s, background .3s;
+}
+.grade-row input:focus{
+  border-color:var(--orange-500);
+  box-shadow:0 0 0 4px rgba(255,122,0,.16);
+}
+.grade-row input.filled{
+  background:rgba(255,122,0,.14);border-color:rgba(255,150,51,.5);
+}
+.grade-row input.shake{animation:shake .35s ease;border-color:var(--danger)}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-6px)}
+  50%{transform:translateX(6px)}
+  75%{transform:translateX(-4px)}
+}
+.integradora .grade-row input{width:104px}
+.integradora{border-color:rgba(255,169,64,.35)}
+.integradora .block-head .icon{background:rgba(255,201,60,.18)}
+
+.calc-wrap{margin-top:22px}
+.btn-calc{
+  position:relative;overflow:hidden;
+}
+.btn-calc::after{
+  content:"";position:absolute;top:0;left:-80%;width:60%;height:100%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);
+  animation:shine 2.8s ease-in-out infinite;
+}
+@keyframes shine{0%,60%{left:-80%}100%{left:130%}}
+
+/* ===== TELA 3: resultado ===== */
+.result{align-items:center;text-align:center;justify-content:center}
+.medal{
+  width:150px;height:150px;border-radius:50%;
+  display:grid;place-items:center;position:relative;
+  margin-bottom:22px;
+}
+.medal .ring{position:absolute;inset:0;transform:rotate(-90deg)}
+.medal .ring circle{fill:none;stroke-width:10;stroke-linecap:round}
+.medal .ring .track{stroke:rgba(255,255,255,.1)}
+.medal .ring .prog{
+  stroke:url(#gradRing);
+  stroke-dasharray:414;stroke-dashoffset:414;
+  transition:stroke-dashoffset 1.6s cubic-bezier(.22,1,.36,1);
+}
+.medal-num{
+  font-family:var(--font-display);font-weight:800;font-size:44px;
+  line-height:1;
+}
+.medal-num small{display:block;font-size:11px;font-weight:600;letter-spacing:1px;color:var(--ice-dim);text-transform:uppercase;margin-top:4px}
+.result h2{
+  font-family:var(--font-display);font-weight:800;
+  font-size:clamp(26px,7.5vw,34px);line-height:1.15;letter-spacing:-.4px;
+}
+.result h2 em{
+  font-style:normal;
+  background:linear-gradient(90deg,var(--orange-400),var(--gold));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.result .tagline{
+  margin-top:6px;font-family:var(--font-display);font-weight:600;
+  font-size:14px;letter-spacing:2px;text-transform:uppercase;
+}
+.result .tagline.ok{color:var(--success)}
+.result .tagline.nok{color:var(--orange-300)}
+.msg{
+  margin-top:18px;font-size:15.5px;line-height:1.65;color:var(--ice);
+  background:var(--card);border:1.5px solid var(--card-border);
+  border-radius:var(--radius);padding:20px 18px;text-align:left;
+}
+.msg b{color:var(--orange-300)}
+.stats{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  width:100%;margin-top:14px;
+}
+.stat{
+  background:var(--card);border:1.5px solid var(--card-border);
+  border-radius:16px;padding:12px;
+}
+.stat b{font-family:var(--font-display);font-size:20px;font-weight:800;display:block}
+.stat span{font-size:11px;color:var(--ice-dim);letter-spacing:.5px;text-transform:uppercase}
+.result .btn{margin-top:24px}
+
+footer{
+  margin-top:26px;text-align:center;
+  font-size:11px;color:rgba(185,199,228,.55);letter-spacing:.4px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="gradRing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF7A00"/>
+      <stop offset="100%" stop-color="#FFC93C"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<div class="app">
+  <div class="brand">
+    <div class="brand-mark">GR</div>
+    <div class="brand-text">
+      <b>Simulador de Média</b>
+      <span>Gestão de Recursos Humanos</span>
+    </div>
+  </div>
+
+  <!-- TELA 1 -->
+  <section class="screen active" id="screen-welcome">
+    <div class="hero">
+      <h1>Sua média,<br>seu <em>jogo</em>.</h1>
+      <p>Lance suas notas do semestre, simule a Avaliação Integradora e descubra na hora se a aprovação já é sua.</p>
+    </div>
+    <div class="field">
+      <label for="inp-name">Como você se chama?</label>
+      <input type="text" id="inp-name" placeholder="Digite seu nome" maxlength="40" autocomplete="given-name">
+    </div>
+    <div class="field">
+      <label>Em qual período você está?</label>
+      <div class="periods" id="periods">
+        <button class="period-chip" data-p="1"><b>1º</b><span>período</span></button>
+        <button class="period-chip" data-p="2"><b>2º</b><span>período</span></button>
+        <button class="period-chip" data-p="3"><b>3º</b><span>período</span></button>
+        <button class="period-chip" data-p="4"><b>4º</b><span>período</span></button>
+      </div>
+    </div>
+    <button class="btn" id="btn-start" disabled>Começar 🚀</button>
+    <footer>Curso de Gestão de RH · Média para aprovação: 60</footer>
+  </section>
+
+  <!-- TELA 2 -->
+  <section class="screen" id="screen-grades">
+    <div class="hud">
+      <div class="hud-row">
+        <div class="who">Bora, <b id="hud-name">aluno</b>!</div>
+        <div class="hud-pts"><span id="hud-points">0</span><small>/100 pts no semestre</small></div>
+      </div>
+      <div class="bar"><div class="bar-fill" id="hud-bar"></div></div>
+      <div class="hud-hint" id="hud-hint">Preencha suas notas e veja os pontos subirem ⚡</div>
+    </div>
+
+    <div class="block">
+      <div class="block-head">
+        <h2><span class="icon">📝</span>Avaliações</h2>
+        <span class="block-score" id="score-av">0/50</span>
+      </div>
+      <div class="grade-row">
+        <div class="grade-info"><b>Avaliação 1</b><span>vale até 5 pontos</span></div>
+        <input type="text" inputmode="decimal" data-max="5" data-block="av" placeholder="0 a 5">
+      </div>
+      <div class="grade-row">
+        <div class="grade-info"><b>Avaliação 2</b><span>vale até 5 pontos</span></div>
+        <input type="text" inputmode="decimal" data-max="5" data-block="av" placeholder="0 a 5">
+      </div>
+      <div class="grade-row">
+        <div class="grade-info"><b>Avaliação 3</b><span>vale até 15 pontos</span></div>
+        <input type="text" inputmode="decimal" data-max="15" data-block="av" placeholder="0 a 15">
+      </div>
+      <div class="grade-row">
+        <div class="grade-info"><b>Avaliação 4</b><span>vale até 25 pontos</span></div>
+        <input type="text" inputmode="decimal" data-max="25" data-block="av" placeholder="0 a 25">
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="block-head">
+        <h2><span class="icon">💼</span>Projeto</h2>
+        <span class="block-score" id="score-pj">0/50</span>
+      </div>
+      <div class="grade-row">
+        <div class="grade-info"><b>Nota 1</b><span>vale até 10 pontos</span></div>
+        <input type="text" inputmode="decimal" data-max="10" data-block="pj" placeholder="0 a 10">
+      </div>
+      <div class="grade-row">
+        <div class="grade-info"><b>Nota 2</b><span>vale até 20 pontos</span></div>
+        <input type="text" inputmode="decimal" data-max="20" data-block="pj" placeholder="0 a 20">
+      </div>
+      <div class="grade-row">
+        <div class="grade-info"><b>Nota 3</b><span>vale até 20 pontos</span></div>
+        <input type="text" inputmode="decimal" data-max="20" data-block="pj" placeholder="0 a 20">
+      </div>
+    </div>
+
+    <div class="block integradora">
+      <div class="block-head">
+        <h2><span class="icon">🏆</span>Avaliação Integradora</h2>
+        <span class="block-score" id="score-ai">0/100</span>
+      </div>
+      <div class="grade-row">
+        <div class="grade-info"><b>Prova final</b><span>vale até 100 pontos</span></div>
+        <input type="text" inputmode="decimal" data-max="100" data-block="ai" id="inp-final" placeholder="0 a 100">
+      </div>
+    </div>
+
+    <div class="calc-wrap">
+      <button class="btn btn-calc" id="btn-calc">Calcular minha média ✨</button>
+    </div>
+    <footer>Média = (pontos do semestre + integradora) ÷ 2</footer>
+  </section>
+
+  <!-- TELA 3 -->
+  <section class="screen result" id="screen-result">
+    <div class="medal">
+      <svg class="ring" viewBox="0 0 150 150">
+        <circle class="track" cx="75" cy="75" r="66"></circle>
+        <circle class="prog" id="ring-prog" cx="75" cy="75" r="66"></circle>
+      </svg>
+      <div class="medal-num"><span id="res-num">0</span><small>média final</small></div>
+    </div>
+    <h2 id="res-title">Resultado</h2>
+    <div class="tagline" id="res-tag"></div>
+    <div class="msg" id="res-msg"></div>
+    <div class="stats">
+      <div class="stat"><b id="st-sem">0</b><span>Semestre</span></div>
+      <div class="stat"><b id="st-fin">0</b><span>Integradora</span></div>
+    </div>
+    <button class="btn" id="btn-again">Simular de novo 🔄</button>
+    <button class="btn secondary" id="btn-restart">Trocar aluno</button>
+  </section>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var state = { name:"", period:0 };
+  var APPROVAL = 60;
+
+  var $ = function(s){ return document.querySelector(s); };
+  var $$ = function(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); };
+
+  function vibrate(pattern){
+    if (navigator.vibrate) { try { navigator.vibrate(pattern); } catch(e){} }
+  }
+
+  function show(id){
+    $$(".screen").forEach(function(s){ s.classList.remove("active"); });
+    $(id).classList.add("active");
+    window.scrollTo({top:0, behavior:"instant" in window ? "instant" : "auto"});
+  }
+
+  /* ===== Tela 1 ===== */
+  var inpName = $("#inp-name");
+  var btnStart = $("#btn-start");
+
+  function checkStart(){
+    btnStart.disabled = !(inpName.value.trim().length >= 2 && state.period > 0);
+  }
+
+  inpName.addEventListener("input", checkStart);
+
+  $$("#periods .period-chip").forEach(function(chip){
+    chip.addEventListener("click", function(){
+      $$("#periods .period-chip").forEach(function(c){ c.classList.remove("selected"); });
+      chip.classList.add("selected");
+      state.period = parseInt(chip.getAttribute("data-p"), 10);
+      vibrate(12);
+      checkStart();
+    });
+  });
+
+  btnStart.addEventListener("click", function(){
+    state.name = firstName(inpName.value.trim());
+    $("#hud-name").textContent = state.name;
+    vibrate(20);
+    show("#screen-grades");
+  });
+
+  function firstName(full){
+    var n = full.split(/\s+/)[0];
+    return n.charAt(0).toUpperCase() + n.slice(1);
+  }
+
+  /* ===== Tela 2 ===== */
+  var inputs = $$("#screen-grades input");
+
+  function parseVal(inp){
+    var v = String(inp.value).replace(",", ".").trim();
+    if (v === "") return null;
+    var n = parseFloat(v);
+    return isNaN(n) ? null : n;
+  }
+
+  inputs.forEach(function(inp){
+    inp.addEventListener("input", function(){
+      var max = parseFloat(inp.getAttribute("data-max"));
+      var n = parseVal(inp);
+      if (n !== null && n > max){
+        inp.value = String(max).replace(".", ",");
+        inp.classList.add("shake");
+        vibrate([30,40,30]);
+        setTimeout(function(){ inp.classList.remove("shake"); }, 400);
+      }
+      if (n !== null && n < 0){ inp.value = "0"; }
+      inp.classList.toggle("filled", parseVal(inp) !== null);
+      updateHud();
+    });
+    inp.addEventListener("focus", function(){ vibrate(8); });
+  });
+
+  function blockSum(block){
+    var sum = 0;
+    $$('#screen-grades input[data-block="' + block + '"]').forEach(function(inp){
+      var n = parseVal(inp);
+      if (n !== null) sum += n;
+    });
+    return sum;
+  }
+
+  function semesterFilled(){
+    return $$('#screen-grades input[data-block="av"], #screen-grades input[data-block="pj"]')
+      .every(function(inp){ return parseVal(inp) !== null; });
+  }
+
+  function fmt(n){
+    return (Math.round(n * 10) / 10).toString().replace(".", ",");
+  }
+
+  function updateHud(){
+    var av = blockSum("av"), pj = blockSum("pj"), ai = blockSum("ai");
+    var sem = av + pj;
+
+    $("#hud-points").textContent = fmt(sem);
+    $("#hud-bar").style.width = Math.min(100, sem) + "%";
+
+    var sAv = $("#score-av"), sPj = $("#score-pj"), sAi = $("#score-ai");
+    sAv.textContent = fmt(av) + "/50";
+    sPj.textContent = fmt(pj) + "/50";
+    sAi.textContent = fmt(ai) + "/100";
+    sAv.classList.toggle("full", av >= 40);
+    sPj.classList.toggle("full", pj >= 40);
+    sAi.classList.toggle("full", ai >= 60);
+
+    var hint = $("#hud-hint");
+    var finalVal = parseVal($("#inp-final"));
+    if (semesterFilled() && finalVal === null){
+      var need = Math.max(0, APPROVAL * 2 - sem);
+      if (need <= 0){
+        hint.innerHTML = "Semestre garantido! Qualquer nota na integradora te aprova 🎉";
+      } else if (need > 100){
+        hint.innerHTML = "Com esses pontos, a integradora não alcança a média. Confira as notas.";
+      } else {
+        hint.innerHTML = "Para passar, você precisa de <b>" + fmt(need) + "</b> na integradora 🎯";
+      }
+    } else if (semesterFilled() && finalVal !== null){
+      hint.innerHTML = "Tudo lançado! Agora é só calcular 👇";
+    } else {
+      hint.textContent = "Preencha suas notas e veja os pontos subirem ⚡";
+    }
+  }
+
+  /* ===== Cálculo ===== */
+  $("#btn-calc").addEventListener("click", function(){
+    var missing = inputs.filter(function(inp){ return parseVal(inp) === null; });
+    if (missing.length){
+      vibrate([40,50,40]);
+      missing.forEach(function(inp){
+        inp.classList.add("shake");
+        setTimeout(function(){ inp.classList.remove("shake"); }, 400);
+      });
+      missing[0].scrollIntoView({behavior:"smooth", block:"center"});
+      missing[0].focus({preventScroll:true});
+      $("#hud-hint").innerHTML = "Faltam <b>" + missing.length + "</b> nota(s) para calcular!";
+      return;
+    }
+    var sem = blockSum("av") + blockSum("pj");
+    var fin = blockSum("ai");
+    var media = (sem + fin) / 2;
+    vibrate([60, 40, 60, 40, 120]);
+    showResult(media, sem, fin);
+  });
+
+  /* ===== Mensagens por período ===== */
+  function approvedMsg(name, period, media){
+    var open = "<b>" + name + "</b>, que orgulho ver seu nome ao lado de uma média " + fmt(media) + "! ";
+    var body = "Ninguém viu as noites em que o cansaço quase venceu, as provas encaradas depois de um dia cheio, as vezes em que você pensou em desistir e escolheu continuar. Mas o resultado está aqui, e ele conta essa história por você. ";
+    var byPeriod = {
+      1: "Você venceu o período mais difícil de todos: o primeiro. É nele que a maioria desiste, e você provou que veio para ficar. A base da sua carreira em Gestão de RH acaba de ser construída, e ela é sólida. O sonho começou, e começou do jeito certo. 💪",
+      2: "Metade do caminho já é sua! O segundo período exigiu mais de você, e você entregou mais ainda. Cada conceito de RH que você domina hoje é um degrau que ninguém tira. Siga firme: a segunda metade da jornada vai ser ainda mais sua. 🚀",
+      3: "Falta tão pouco que dá até para sentir o cheiro da formatura. O terceiro período vencido significa que o sonho não é mais um horizonte distante: ele está logo ali, na próxima curva. Um último período separa você do diploma de Gestão de RH. Vai com tudo! 🔥",
+      4: "Você CONCLUIU o curso de Gestão de Recursos Humanos! Quatro períodos de dedicação, renúncia e persistência se transformaram em conquista. A partir de agora o mercado ganha um profissional que sabe o valor das pessoas porque conhece o próprio valor. Parabéns pela sua formação. O diploma é seu! 🎓👏"
+    };
+    return open + body + (byPeriod[period] || byPeriod[1]);
+  }
+
+  function failedMsg(name, period, media, sem){
+    var faltou = APPROVAL - media;
+    var precisava = Math.min(100, Math.max(0, APPROVAL * 2 - sem));
+    var txt = "<b>" + name + "</b>, ainda não foi dessa vez: faltou <b>" + fmt(faltou) + "</b> ponto(s) para a média 60. ";
+    txt += "Isso não apaga o esforço do seu semestre no " + period + "º período, e não define quem você é como profissional de RH. ";
+    if (precisava <= 100 && sem < 120){
+      txt += "Para referência: com " + fmt(sem) + " pontos no semestre, a integradora precisava de <b>" + fmt(precisava) + "</b>. ";
+    }
+    txt += "Use este simulador a seu favor: ajuste os números, veja onde recuperar pontos e volte mais forte. Quem chega até aqui não desiste na porta. 💙";
+    return txt;
+  }
+
+  /* ===== Tela 3 ===== */
+  function showResult(media, sem, fin){
+    var approved = media >= APPROVAL;
+    show("#screen-result");
+
+    $("#st-sem").textContent = fmt(sem);
+    $("#st-fin").textContent = fmt(fin);
+
+    var title = $("#res-title"), tag = $("#res-tag"), msg = $("#res-msg");
+
+    if (approved){
+      title.innerHTML = "Parabéns, <em>" + state.name + "</em>!";
+      tag.textContent = state.period === 4 ? "Curso concluído" : "Aprovação garantida";
+      tag.className = "tagline ok";
+      msg.innerHTML = approvedMsg(state.name, state.period, media);
+      celebrate();
+      vibrate([80,60,80,60,200]);
+    } else {
+      title.innerHTML = "Quase lá, <em>" + state.name + "</em>";
+      tag.textContent = "Ainda não foi dessa vez";
+      tag.className = "tagline nok";
+      msg.innerHTML = failedMsg(state.name, state.period, media, sem);
+    }
+
+    animateNumber($("#res-num"), media, 1400);
+    var circumference = 2 * Math.PI * 66;
+    var ring = $("#ring-prog");
+    ring.style.strokeDasharray = circumference;
+    ring.style.strokeDashoffset = circumference;
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        ring.style.strokeDashoffset = circumference * (1 - Math.min(media,100)/100);
+      });
+    });
+  }
+
+  function animateNumber(el, target, dur){
+    var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced){ el.textContent = fmt(target); return; }
+    var start = null;
+    function step(ts){
+      if (!start) start = ts;
+      var p = Math.min(1, (ts - start) / dur);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(target * eased);
+      if (p < 1) requestAnimationFrame(step);
+      else el.textContent = fmt(target);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function celebrate(){
+    if (typeof confetti !== "function") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var colors = ["#FF7A00","#FFC93C","#1E4FA3","#FFFFFF"];
+    confetti({particleCount:120, spread:75, origin:{y:.65}, colors:colors});
+    setTimeout(function(){
+      confetti({particleCount:70, angle:60, spread:60, origin:{x:0, y:.7}, colors:colors});
+      confetti({particleCount:70, angle:120, spread:60, origin:{x:1, y:.7}, colors:colors});
+    }, 350);
+    setTimeout(function(){
+      confetti({particleCount:90, spread:100, origin:{y:.4}, colors:colors, scalar:.9});
+    }, 800);
+  }
+
+  /* ===== Reset ===== */
+  $("#btn-again").addEventListener("click", function(){
+    vibrate(15);
+    show("#screen-grades");
+  });
+
+  $("#btn-restart").addEventListener("click", function(){
+    vibrate(15);
+    inputs.forEach(function(inp){ inp.value = ""; inp.classList.remove("filled"); });
+    updateHud();
+    state = { name:"", period:0 };
+    inpName.value = "";
+    $$("#periods .period-chip").forEach(function(c){ c.classList.remove("selected"); });
+    checkStart();
+    show("#screen-welcome");
+  });
+
+  updateHud();
+})();
+</script>
+</body>
+</html>
