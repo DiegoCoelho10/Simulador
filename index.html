@@ -108,6 +108,22 @@ body{
   box-shadow:0 0 0 4px rgba(255,122,0,.18);
 }
 .periods{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.courses{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.course-chip{
+  padding:16px 8px;border-radius:16px;border:1.5px solid var(--card-border);
+  background:var(--card);color:var(--ice);cursor:pointer;
+  text-align:center;transition:all .18s ease;
+  font-family:var(--font-display);
+}
+.course-chip b{display:block;font-size:15px;font-weight:700}
+.course-chip span{font-size:11px;letter-spacing:.5px;color:var(--ice-dim);text-transform:uppercase}
+.course-chip.selected{
+  background:linear-gradient(160deg,var(--orange-500),#E56500);
+  border-color:var(--orange-300);
+  transform:translateY(-2px);
+  box-shadow:0 8px 22px rgba(255,122,0,.35);
+}
+.course-chip.selected span{color:rgba(255,255,255,.85)}
 .period-chip{
   padding:14px 4px;border-radius:16px;border:1.5px solid var(--card-border);
   background:var(--card);color:var(--ice);cursor:pointer;
@@ -295,47 +311,6 @@ footer{
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 
-/* folha de compartilhamento */
-.sheet-overlay{
-  position:fixed;inset:0;z-index:50;
-  background:rgba(4,10,25,.72);
-  backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
-  display:none;align-items:flex-end;justify-content:center;
-}
-.sheet-overlay.open{display:flex}
-.sheet{
-  width:100%;max-width:480px;
-  background:var(--navy-800);
-  border:1.5px solid var(--card-border);border-bottom:none;
-  border-radius:26px 26px 0 0;
-  padding:24px 20px calc(22px + env(safe-area-inset-bottom));
-  animation:sheetUp .32s cubic-bezier(.22,1,.36,1);
-}
-@keyframes sheetUp{from{transform:translateY(60px);opacity:0}to{transform:none;opacity:1}}
-.sheet h3{
-  font-family:var(--font-display);font-size:17px;font-weight:700;
-  text-align:center;margin-bottom:16px;
-}
-.share-opt{
-  width:100%;display:flex;align-items:center;gap:14px;text-align:left;
-  background:var(--card);border:1.5px solid var(--card-border);
-  border-radius:18px;padding:16px;cursor:pointer;color:var(--ice);
-  transition:transform .15s, border-color .2s;
-  margin-bottom:10px;font-family:var(--font-body);
-}
-.share-opt:active{transform:scale(.98);border-color:var(--orange-500)}
-.share-opt .emo{
-  width:46px;height:46px;border-radius:14px;flex-shrink:0;
-  display:grid;place-items:center;font-size:22px;
-  background:rgba(255,122,0,.16);
-}
-.share-opt b{display:block;font-size:15px;font-family:var(--font-display)}
-.share-opt span{font-size:12.5px;color:var(--ice-dim);line-height:1.4}
-.sheet .cancel{
-  width:100%;padding:14px;margin-top:4px;
-  background:none;border:none;color:var(--ice-dim);
-  font-family:var(--font-display);font-weight:600;font-size:14px;cursor:pointer;
-}
 </style>
 </head>
 <body>
@@ -354,7 +329,7 @@ footer{
     <div class="brand-mark">GR</div>
     <div class="brand-text">
       <b>Simulador de Média</b>
-      <span>Gestão de Recursos Humanos</span>
+      <span>Cursos UNISUAM</span>
     </div>
   </div>
 
@@ -369,16 +344,18 @@ footer{
       <input type="text" id="inp-name" placeholder="Digite seu nome" maxlength="40" autocomplete="given-name">
     </div>
     <div class="field">
-      <label>Em qual período você está?</label>
-      <div class="periods" id="periods">
-        <button class="period-chip" data-p="1"><b>1º</b><span>período</span></button>
-        <button class="period-chip" data-p="2"><b>2º</b><span>período</span></button>
-        <button class="period-chip" data-p="3"><b>3º</b><span>período</span></button>
-        <button class="period-chip" data-p="4"><b>4º</b><span>período</span></button>
+      <label>Qual é o seu curso?</label>
+      <div class="courses" id="courses">
+        <button class="course-chip" data-c="rh"><b>Gestão de RH</b><span>4 períodos</span></button>
+        <button class="course-chip" data-c="fisio"><b>Fisioterapia</b><span>8 períodos</span></button>
       </div>
     </div>
+    <div class="field" id="period-field" style="display:none">
+      <label>Em qual período você está?</label>
+      <div class="periods" id="periods"></div>
+    </div>
     <button class="btn" id="btn-start" disabled>Começar 🚀</button>
-    <footer>Curso de Gestão de RH · Média para aprovação: 60 · v1.3</footer>
+    <footer>Média para aprovação: 60 · v1.4</footer>
   </section>
 
   <!-- TELA 2 -->
@@ -467,33 +444,21 @@ footer{
       <div class="stat"><b id="st-sem">0</b><span>Semestre</span></div>
       <div class="stat"><b id="st-fin">0</b><span>Integradora</span></div>
     </div>
-    <button class="btn" id="btn-share" style="display:none">Compartilhar conquista 📲</button>
-    <button class="btn secondary" id="btn-again">Simular de novo 🔄</button>
+    <button class="btn" id="btn-again">Simular de novo 🔄</button>
     <button class="btn secondary" id="btn-restart">Trocar aluno</button>
   </section>
-</div>
-
-<div class="sheet-overlay" id="share-sheet">
-  <div class="sheet">
-    <h3>Como você quer compartilhar? 📲</h3>
-    <button class="share-opt" id="share-with-grade">
-      <span class="emo">💯</span>
-      <div><b>Com a minha média</b><span>Mostra a nota em destaque no card. Pra quem quer ostentar!</span></div>
-    </button>
-    <button class="share-opt" id="share-no-grade">
-      <span class="emo">🏆</span>
-      <div><b>Só a aprovação</b><span>Celebra a conquista sem mostrar a nota. O mérito é o mesmo!</span></div>
-    </button>
-    <button class="cancel" id="share-cancel">Cancelar</button>
-  </div>
 </div>
 
 <script>
 (function(){
   "use strict";
 
-  var state = { name:"", period:0 };
+  var state = { name:"", course:"", period:0 };
   var APPROVAL = 60;
+  var COURSES = {
+    rh:    { label: "Gestão de RH",  total: 4 },
+    fisio: { label: "Fisioterapia",  total: 8 }
+  };
 
   var $ = function(s){ return document.querySelector(s); };
   var $$ = function(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); };
@@ -513,16 +478,39 @@ footer{
   var btnStart = $("#btn-start");
 
   function checkStart(){
-    btnStart.disabled = !(inpName.value.trim().length >= 2 && state.period > 0);
+    btnStart.disabled = !(inpName.value.trim().length >= 2 && state.course && state.period > 0);
   }
 
   inpName.addEventListener("input", checkStart);
 
-  $$("#periods .period-chip").forEach(function(chip){
+  function renderPeriods(total){
+    var box = $("#periods");
+    box.innerHTML = "";
+    for (var p = 1; p <= total; p++){
+      (function(p){
+        var chip = document.createElement("button");
+        chip.className = "period-chip";
+        chip.innerHTML = "<b>" + p + "º</b><span>período</span>";
+        chip.addEventListener("click", function(){
+          $$("#periods .period-chip").forEach(function(c){ c.classList.remove("selected"); });
+          chip.classList.add("selected");
+          state.period = p;
+          vibrate(12);
+          checkStart();
+        });
+        box.appendChild(chip);
+      })(p);
+    }
+  }
+
+  $$("#courses .course-chip").forEach(function(chip){
     chip.addEventListener("click", function(){
-      $$("#periods .period-chip").forEach(function(c){ c.classList.remove("selected"); });
+      $$("#courses .course-chip").forEach(function(c){ c.classList.remove("selected"); });
       chip.classList.add("selected");
-      state.period = parseInt(chip.getAttribute("data-p"), 10);
+      state.course = chip.getAttribute("data-c");
+      state.period = 0;
+      renderPeriods(COURSES[state.course].total);
+      $("#period-field").style.display = "block";
       vibrate(12);
       checkStart();
     });
@@ -641,6 +629,7 @@ footer{
 
   /* ===== Mensagens por período ===== */
   var BANK = {
+  rh: {
     1: [
       "{nome}... para tudo e olha essa tela: média {media} no seu primeiro período. Você lembra do dia da matrícula? Daquele frio na barriga, daquela pergunta silenciosa: será que eu dou conta? Muita gente ao seu redor talvez nem saiba o tamanho da coragem que foi apertar aquele botão de inscrição. Foram semanas equilibrando trabalho, casa e apostila, noites em que o sono implorava e você respondia com mais uma página estudada. E agora a resposta chegou, preta no branco: você dá conta, sim. O curso de Gestão de RH acaba de ganhar alguém que não veio de passagem. Veio pra ficar, veio pra vencer. E isso é só o começo da sua história. 💪🔥",
       "Aprovação confirmada, {nome}! Deixa eu te contar um segredo: o primeiro período não testa inteligência, testa coragem. É nele que a rotina aperta de verdade, que o cansaço cobra, que o boleto chega junto com a prova e que a maioria das pessoas encontra motivos de sobra pra desistir. Você também encontrou esses motivos. A diferença é que olhou pra cada um deles e escolheu continuar. Escolheu no dia em que o corpo pedia cama, escolheu na semana em que tudo deu errado, escolheu quando ninguém estava vendo. Sua média de {media} não é só um número: é a soma de todas essas escolhas invisíveis. Hoje elas aparecem, e brilham. Bem-vindo à jornada, guerreiro. 🚀",
@@ -689,13 +678,70 @@ footer{
       "{nome}, oficialmente concluído! A última média foi {media}, e com ela vem um direito que pouca gente conquista: o de olhar pra trás com orgulho absoluto. Cada aula assistida depois do expediente, cada fim de semana trocado por estudo, cada não que você disse ao descanso pra dizer sim ao futuro... tudo valeu, e valeu com juros. O RH ganha alguém que entende de superação não porque leu a teoria, mas porque viveu a prática todos os dias, por quatro períodos seguidos. Que a sua história inspire quem ainda está no meio do caminho. Porque inspira. Parabéns, do fundo do coração! 💙👏",
       "Parabéns, {nome}! Você fechou o quarto e último período com média {media}, e com isso o sonho que um dia pareceu grande demais acabou de caber, inteirinho, dentro da sua história. Teve gente que duvidou, teve dia que conspirou contra, teve cansaço que parecia definitivo. E teve você: acordando, insistindo, entregando, terminando. A colação de grau vai ser um momento, mas a conquista é eterna. Você é a prova viva de que a persistência forma muito mais do que profissionais: forma vencedores. E o mundo do RH acaba de ganhar um. Bem-vindo à sua nova vida, graduado! 🎓✨🎉"
     ]
+  },
+  fisio: {
+    1: [
+      "{nome}, primeira aprovação da sua vida universitária, com média {media}! O primeiro período de Fisioterapia assusta qualquer um: anatomia com seus nomes intermináveis, a rotina virada do avesso, aquela dúvida sussurrando se você levava mesmo jeito pra área da saúde. Você respondeu estudando, insistindo, chegando até aqui. Ninguém viu as noites revisando estrutura por estrutura do corpo humano, mas o resultado enxerga tudo. Quem sonha em cuidar da dor dos outros começa cuidando do próprio sonho, e você provou que sabe cuidar muito bem. A jornada é longa, mas começou do jeito certo. 💪🔥",
+      "Aprovação confirmada, {nome}! Todo fisioterapeuta formado um dia foi um calouro assustado diante do primeiro período, decorando ossos e músculos enquanto a vida seguia cobrando lá fora. A diferença entre quem se forma e quem desiste está exatamente onde você está agora: na decisão de continuar. Sua média de {media} carrega noites de estudo, resumos rabiscados e cansaço vencido no detalhe. O corpo humano tem mais de duzentos ossos, e você já mostrou ter a estrutura mais importante de todas: coluna pra aguentar o desafio. São oito períodos, e o primeiro já é seu. 🦴✨",
+      "{nome}, respira e sente o peso bom desse momento: média {media} logo na estreia! Escolher Fisioterapia é escolher uma das jornadas mais longas e bonitas da saúde, e o primeiro período existe pra testar se a escolha foi da boca ou do coração. A sua foi do coração, e as notas confirmam. Entre o trabalho, os compromissos e a vida acontecendo, você abriu espaço pro sonho de vestir o jaleco. Guarda essa primeira vitória num lugar especial: nos períodos difíceis que virão, ela vai te lembrar de quem você é. Alguém que termina o que começa. 🌟",
+      "Tem gente que espera as condições perfeitas pra começar uma faculdade. Você começou com a vida do jeito que ela é, {nome}, corrida e cheia de responsabilidade, e fechou o primeiro período de Fisioterapia com média {media}. Anatomia, uma enxurrada de conteúdo novo, e você firme, transformando medo em método e dúvida em nota. O caminho até o registro profissional é longo, são oito períodos, mas todo grande fisioterapeuta começou exatamente onde você está: aprovado na primeira batalha e com fome da segunda. O sonho saiu do papel. 🔥",
+      "{nome}, aprovado! E que ninguém diga que foi sorte, porque sorte não decora origem e inserção de músculo, sorte não estuda depois do expediente, sorte não abre mão de domingo pra revisar prova. Foi você, escolha por escolha, noite por noite. O primeiro período de Fisioterapia é um filtro, e você passou por ele com média {media}. De hoje em diante, quando a jornada apertar, lembra desta tela: você já provou uma vez que consegue. E quem prova uma vez, repete quantas vezes forem necessárias. 💥"
+    ],
+    2: [
+      "{nome}, segundo período vencido com média {media}! A novidade já passou, a rotina já mostrou os dentes, e você continuou. Esse é o segredo que ninguém conta na matrícula: a faculdade de Fisioterapia não é vencida no talento, é vencida na constância. Cada sistema do corpo que você aprende agora é um tijolo na base do profissional que vai devolver movimento e qualidade de vida a muita gente. Dois períodos concluídos, e uma certeza crescendo: você não veio experimentar, veio se formar. 🚀",
+      "Aprovação no segundo período, {nome}! Média {media} num momento em que muita gente começa a duvidar da escolha. Você não duvidou: aprofundou. As matérias ficaram mais densas, o conteúdo mais técnico, e a sua entrega acompanhou. Quem te vê estudando fisiologia depois de um dia cheio talvez não entenda, mas você entende: cada página é um passo em direção ao jaleco, à clínica, ao paciente que um dia vai melhorar nas suas mãos. Segue firme. A jornada é longa, mas você caminha bonito. 💪",
+      "{nome}, um quarto do curso concluído! Média {media} fechando o segundo período de Fisioterapia. Pode parecer pouco perto dos oito, mas olha o que esses dois períodos já fizeram por você: te ensinaram a estudar cansado, a se organizar no caos, a persistir sem plateia. Essas habilidades valem tanto quanto o conteúdo, porque são elas que vão te carregar até a colação. O corpo humano que você estuda funciona em sistemas integrados. A sua aprovação também: disciplina, sonho e coragem trabalhando em harmonia. 🌟",
+      "Que consistência, {nome}! Segundo período no bolso com média {media}. Se o primeiro foi sobre a coragem de começar, este foi sobre a força de continuar quando o encanto da novidade acabou. E continuar é a competência mais rara que existe. Enquanto isso, seu vocabulário mudou, seu olhar sobre o corpo humano mudou, você mudou. A Fisioterapia vai exigir muito nos próximos períodos, mas cada semestre vencido te deixa mais forte pro seguinte. Dois degraus subidos. A escada inteira vai ser sua. ✊",
+      "{nome}, aprovado de novo! Média {media} no segundo período, e o mais bonito: você está construindo um padrão. Não foi golpe de sorte no primeiro semestre, é consistência de quem leva o sonho a sério. Entre trabalho, casa e apostila, você está provando que dá pra caber uma faculdade de Fisioterapia numa vida cheia. Seis períodos restantes podem parecer muito, mas olha pra trás: dois já viraram história. E histórias como a sua costumam terminar com jaleco, registro e muito orgulho. 🔥"
+    ],
+    3: [
+      "{nome}, terceiro período vencido com média {media}! Você está entrando na fase em que a Fisioterapia começa a fazer sentido de verdade: as peças da anatomia e da fisiologia se conectando, o olhar clínico nascendo, o estudante dando lugar ao futuro profissional. Não foi um semestre fácil, e é exatamente por isso que essa aprovação vale tanto. O cansaço tentou negociar, a rotina tentou apertar, e você seguiu entregando. Três períodos concluídos. O caminho é longo, mas quem anda com essa firmeza chega. 💪",
+      "Média {media} no terceiro período, {nome}! E chegando com força. Sabe o que mais impressiona? A esta altura, o entusiasmo do início já foi embora faz tempo, e o que te move agora é coisa mais profunda: compromisso. Compromisso com o sonho, com quem torce por você e com os pacientes que um dia vão depender do que você está aprendendo hoje. Cada noite de estudo é um presente pro seu futuro. E ele está cada vez menos distante. 🌟",
+      "{nome}, aprovado! Três períodos de Fisioterapia concluídos, este com média {media}. Pensa na bagagem que você já carrega: conteúdos que pareciam impossíveis viraram domínio, rotinas que pareciam insustentáveis viraram hábito. Você está se transformando junto com o curso, e essa é a parte mais bonita da graduação, a que não aparece na grade curricular. A metade do caminho já desponta no horizonte. Continua nesse ritmo que ela chega logo, e chega com você inteiro. 🚀",
+      "Terceiro período no currículo, {nome}, e com média {media}! A faculdade de Fisioterapia é uma maratona de oito períodos, e maratona não se vence no arranque, se vence na passada constante. A sua está firme. Enquanto muita gente pelo caminho foi desistindo, você foi acumulando: conhecimento, resiliência e agora mais uma aprovação. O jaleco ainda não chegou, mas o profissional que vai vesti-lo já está sendo formado, prova após prova, semestre após semestre. Orgulhe-se do processo. 👏",
+      "{nome}, que semestre! Média {media} fechando o terceiro período. Preciso te lembrar de uma coisa: cada estrutura do corpo que você aprende, cada conceito que você domina, é alguém que um dia vai voltar a andar, a trabalhar, a viver sem dor por causa do seu conhecimento. Estudar Fisioterapia é acumular ferramentas de transformar vidas. Você já tem três períodos de ferramentas na bagagem e uma vontade que não enferruja. Bora pro quarto, que a metade do curso te espera. 🔥"
+    ],
+    4: [
+      "{nome}, METADE DO CURSO É SUA! Quatro períodos de Fisioterapia concluídos, este com média {media}. Deixa o tamanho disso assentar: metade de uma das graduações mais exigentes da saúde já ficou pra trás, vencida com trabalho, renúncia e teimosia do bem. A partir de agora a matemática joga no seu time: falta exatamente o que você já provou ser capaz de fazer. A primeira metade formou a sua base. A segunda vai formar o fisioterapeuta. E que profissional vem vindo. 🚀🔥",
+      "Média {media} e a metade da jornada conquistada, {nome}! O quarto período é um marco que merece festa: você não é mais iniciante, é veterano. Já sabe estudar cansado, já conhece o peso das provas, já aprendeu seus limites e, melhor ainda, aprendeu a empurrá-los. Daqui pra frente, cada semestre te deixa mais perto do estágio, da prática, do paciente real. O sonho de vestir o jaleco deixou de ser distante: agora ele tem metade do caminho andado. 💪",
+      "{nome}, aprovado no quarto período! Cinquenta por cento do curso concluído com média {media}. Olha pra trás um instante: quantas noites, quantas provas, quantas vezes o desânimo bateu na porta e você não abriu? Tudo isso construiu a pessoa que lê esta mensagem. Agora olha pra frente: estágios, práticas, a Fisioterapia de verdade chegando. Você atravessou a parte mais teórica e árida. Daqui em diante o curso começa a devolver, em experiência, tudo que você investiu nele. 🌟",
+      "Que marco, {nome}! Metade da faculdade de Fisioterapia vencida, com média {media} neste quarto período. Sabe qual é a diferença entre você e quem desistiu no caminho? Não é talento, não é facilidade, não é sorte. É que você continuou nos dias em que ninguém estava olhando. A constância silenciosa é a mais heroica de todas as virtudes. Quatro períodos restam, e eles vão passar mais rápido que os primeiros, porque agora você desce a montanha que passou dois anos subindo. ✊",
+      "{nome}, cinquenta por cento! Média {media} fechando o quarto período. Nas suas mãos já mora metade do conhecimento que vai devolver movimento e esperança a muita gente. Pensa nisso nos dias difíceis: cada semestre seu tem endereço certo, o paciente que ainda nem te conhece mas já depende de você estar se preparando direito. E você está. A segunda metade do curso te espera com as melhores partes: prática, clínica e a sensação crescente de que o jaleco está logo ali. 🔥"
+    ],
+    5: [
+      "{nome}, quinto período vencido com média {media}! Oficialmente, você está mais perto do fim do que do começo, e essa virada muda tudo. Cada aula agora é contagem regressiva, cada prova te aproxima da prática, do estágio, do paciente de verdade. Olha a distância entre você e aquele calouro do primeiro dia: parece outra vida, e é. Você construiu essa nova versão com noites de estudo e domingos de renúncia. Três períodos e o sonho vira realidade. Sente o gosto disso. 🚀",
+      "Média {media} no quinto período, {nome}! A reta decisiva começou. É agora que o conteúdo aperta, que a prática se aproxima, que o cansaço de dois anos e meio tenta cobrar a conta. E é agora, exatamente agora, que você mostra do que é feito: aprovado, firme e com nota. A Fisioterapia está deixando de ser matéria e virando vocação nas suas mãos. Segue nesse passo, porque daqui pra frente cada semestre é mais prático e mais perto do jaleco. 💪",
+      "{nome}, aprovado! Cinco períodos de Fisioterapia na bagagem, este fechado com média {media}. Sabe o que isso significa? Que você já atravessou as matérias que mais assustam, domou conteúdos que pareciam impossíveis e continua de pé, avançando. O que vem agora é o curso te devolvendo em prática o que você pagou em teoria. Falta menos do que você já venceu, e o que você já venceu foi muito. A colação saiu do campo dos sonhos e entrou no calendário. 🌟",
+      "Quinto período no bolso, {nome}, com média {media}! Um número pra você guardar: mais de sessenta por cento do curso já é seu. A balança pesou de vez pro seu lado. Nos próximos semestres, os livros vão dividir espaço com a prática, e você vai descobrir a melhor sensação da Fisioterapia: ver a teoria funcionando em gente de verdade. Todo o esforço até aqui foi pra chegar nessa fase. Você chegou. Aproveita cada momento dela, porque mereceu. 🔥",
+      "{nome}, que jornada! Média {media} fechando o quinto período. Dois anos e meio de dedicação, e o mais bonito: você não perdeu o brilho. Tem estudante que chega nessa altura arrastando o curso; você chega empurrando ele pra frente. Essa energia vai fazer diferença nos estágios que se aproximam, onde atitude vale tanto quanto conhecimento. O fisioterapeuta que você vai ser já dá as caras em cada escolha que você faz. Três períodos. Só três. E o jaleco é seu. ✊"
+    ],
+    6: [
+      "{nome}, sexto período vencido com média {media}! Setenta e cinco por cento do curso concluído. Traduzindo: de cada quatro passos da jornada, três já foram dados. O corpo pode estar cansado, e três anos de faculdade cansam mesmo, mas olha o que esse cansaço comprou: conhecimento, prática, maturidade e a proximidade real da formatura. A Fisioterapia já corre nas suas veias. Falta pouco, muito pouco, e cada semana agora é uma semana a menos entre você e o diploma. 🚀",
+      "Média {media} no sexto período, {nome}! É aqui que se separa quem sonha de quem realiza: no cansaço acumulado de três anos, quando a cama grita mais alto que o despertador e você levanta assim mesmo. Você tem levantado. Prova após prova, construindo com as próprias mãos o futuro que escolheu. Dois períodos restantes. Dois. Depois de seis vencidos, isso é logo ali. Prepara o coração, porque a reta final chegou e ela tem o seu nome escrito. 💪",
+      "{nome}, aprovado! Seis períodos de Fisioterapia concluídos, este com média {media}. A essa altura você já viu de perto o poder da profissão que escolheu: gente recuperando movimento, autonomia, dignidade. E já entendeu que cada plantão de estudo seu tem consequência na vida de alguém. Essa consciência é o que transforma estudantes em grandes profissionais, e você a carrega. Um quarto do caminho resta. Você já venceu três desses quartos. A conta fecha, e fecha com formatura. 🌟",
+      "Sexto período no currículo, {nome}, com média {media}! Quero celebrar algo que passa despercebido: a sua resistência. Três anos conciliando a vida e uma das graduações mais puxadas da saúde, sem largar nenhuma das duas. Isso não é comum, é extraordinário. Os dois períodos finais vão pedir o seu melhor, e a boa notícia é que o seu melhor está mais forte do que nunca, treinado por seis semestres de superação. A formatura já enxerga você chegando. 🔥",
+      "{nome}, que orgulho! Média {media} fechando o sexto período. Fecha os olhos e faz o exercício: imagina você de jaleco, atendendo seu primeiro paciente como profissional. Essa cena está a apenas dois semestres de acontecer. Tudo que você viveu até aqui, das madrugadas de anatomia às práticas de agora, foi ensaio pra ela. Não afrouxa na reta final: acelera. Porque depois de tudo que você provou, terminar em alta é o único final à altura da sua história. ✊"
+    ],
+    7: [
+      "{nome}, PENÚLTIMO PERÍODO VENCIDO! Média {media}, e agora é oficial: a próxima matrícula é a última da sua graduação. Deixa essa frase ecoar. Sete períodos de Fisioterapia atravessados com garra, madrugadas, práticas e uma vontade que nunca enferrujou. Dá pra sentir o cheiro da formatura daqui, dá pra ensaiar o sorriso da colação, dá pra imaginar o abraço de quem torceu por você. Falta um semestre. Um. Depois de sete, é uma volta olímpica. Vai e brilha. 🔥🎓",
+      "Média {media} no sétimo período, {nome}! Você está a um semestre de realizar o sonho. Um. Semestre. Pensa em quantas versões suas existiram nesse caminho: a que teve medo da anatomia, a que quase desistiu no meio, a que descobriu força onde não sabia que tinha. Todas elas te empurraram até aqui, na porta da conquista. O último período vai passar voando, e do outro lado dele espera o diploma de Fisioterapia com o seu nome. Segura firme. Está acontecendo. 🌟",
+      "{nome}, aprovado no penúltimo período com média {media}! A contagem mudou de vez: não é mais quanto falta, é quando chega. E chega no próximo semestre. Sete períodos de dedicação transformaram aquele calouro cheio de dúvida num quase fisioterapeuta cheio de bagagem. Quem já passou pelas suas mãos nas práticas provou do seu cuidado; o mundo é o próximo. Aproveita essa reta final com o coração cheio: você construiu cada centímetro dela. 🚀",
+      "Sétimo período vencido, {nome}, com média {media}! Sabe o que é mais bonito? Você chegando na reta final com essa nota, quando seria compreensível empurrar com a barriga. Isso mostra o profissional que vem aí: alguém que entrega com excelência até quando ninguém cobra. Falta um semestre pra Fisioterapia deixar de ser curso e virar título, carreira, identidade. Tudo que você abriu mão nesses anos está prestes a fazer sentido completo. Prepara o jaleco. 👏",
+      "{nome}, que momento! Média {media} fechando o sétimo de oito períodos. A última grande subida ficou pra trás, e daqui do alto já dá pra ver tudo: a colação, o diploma, o primeiro atendimento como fisioterapeuta de verdade. Anos de esforço couberam em você e te trouxeram até a beira da conquista. O último semestre é a cereja do bolo, e cereja a gente saboreia. Entra nele com orgulho do caminho e fome do final. É seu. ✊🎓"
+    ],
+    8: [
+      "{nome}... VOCÊ CONCLUIU A FACULDADE DE FISIOTERAPIA! Lê de novo, devagar, porque frases assim a vida entrega poucas. Oito períodos de dedicação, madrugadas de anatomia, práticas, provas e renúncias, tudo transformado em conquista, fechando com média {media}. Ninguém viu cada batalha silenciosa, mas o resultado conta a história inteira por você. De hoje em diante existe um fisioterapeuta novo no mundo, e ele nasceu da sua teimosia de nunca desistir. O diploma é seu. O orgulho deveria ser gigante. Parabéns! 🎓🎉",
+      "Acabou, {nome}! E acabou da forma mais bonita: com aprovação e média {media} no último período. A jornada que começou com um calouro decorando ossos termina com um profissional pronto pra devolver movimento, autonomia e esperança a quem precisar. Pensa em todas as versões suas que existiram nesses anos: todas cabem, orgulhosas, dentro do fisioterapeuta que olha pra esta tela agora. A saúde ganha alguém que entende de superação porque viveu uma. Bem-vindo ao outro lado do sonho. 👏🌟",
+      "{nome}, FORMADO! Deixa a palavra assentar: fisioterapeuta. Média {media} fechando o oitavo e último período de uma das graduações mais exigentes que existem. Cada obstáculo desses anos virou parte da história que você vai contar, e ela vai inspirar muita gente que hoje duvida de si mesma. As mãos que passaram madrugadas segurando apostila agora vão passar a vida devolvendo qualidade de vida. Não existe troca mais bonita. Hoje é dia de festa completa. A colação já pode vir! 🎉🎓",
+      "Que orgulho, {nome}! O oitavo período era a última porta, e você a atravessou com média {media}. Anos atrás, isso tudo era um plano rabiscado entre o medo e a esperança. Hoje é diploma, é título, é carreira começando. Ninguém te deu atalho nenhum: foi tudo construído com estudo, prática e persistência, no tempo que você não tinha e criou. Quando o seu primeiro paciente melhorar nas suas mãos, você vai entender que cada sacrifício valeu. A Fisioterapia ganhou um profissional completo. 🌟",
+      "{nome}, missão cumprida: FISIOTERAPEUTA! Média {media} encerrando oito períodos de pura superação. Lembra do primeiro dia, do friozinho na barriga, da dúvida se ia dar conta? Aquela pessoa não imaginava a força que carregava, e você passou esses anos todos provando pra ela, semestre após semestre. O diploma que vem aí não é papel: é a certidão oficial de que promessa sua é promessa cumprida. Respira, celebra, abraça quem caminhou junto. O futuro já pode chamar, porque você está pronto. 🎓✨🎉"
+    ]
+  }
   };
-  var lastTemplate = "";
-
   function approvedMsg(name, period, media){
-    var list = BANK[period] || BANK[1];
+    var bank = BANK[state.course] || BANK.rh;
+    var list = bank[period] || bank[1];
     var pick = list[Math.floor(Math.random() * list.length)];
-    lastTemplate = pick;
     return pick
       .split("{nome}").join("<b>" + name + "</b>")
       .split("{media}").join("<b>" + fmt(media) + "</b>");
@@ -705,7 +751,7 @@ footer{
     var faltou = APPROVAL - media;
     var precisava = Math.min(100, Math.max(0, APPROVAL * 2 - sem));
     var txt = "<b>" + name + "</b>, ainda não foi dessa vez: faltou <b>" + fmt(faltou) + "</b> ponto(s) para a média 60. ";
-    txt += "Isso não apaga o esforço do seu semestre no " + period + "º período, e não define quem você é como profissional de RH. ";
+    txt += "Isso não apaga o esforço do seu semestre no " + period + "º período, e não define quem você é como futuro profissional. ";
     if (precisava <= 100 && sem < 120){
       txt += "Para referência: com " + fmt(sem) + " pontos no semestre, a integradora precisava de <b>" + fmt(precisava) + "</b>. ";
     }
@@ -725,21 +771,12 @@ footer{
 
     if (approved){
       title.innerHTML = "Parabéns, <em>" + state.name + "</em>!";
-      tag.textContent = state.period === 4 ? "Curso concluído" : "Aprovação garantida";
+      tag.textContent = state.period === COURSES[state.course].total ? "Curso concluído" : "Aprovação garantida";
       tag.className = "tagline ok";
       msg.innerHTML = approvedMsg(state.name, state.period, media);
-      lastResult = {
-        media: media,
-        approved: true,
-        tag: tag.textContent,
-        msgPlain: msg.textContent
-      };
-      $("#btn-share").style.display = "block";
       celebrate();
       vibrate([80,60,80,60,200]);
     } else {
-      lastResult = null;
-      $("#btn-share").style.display = "none";
       title.innerHTML = "Quase lá, <em>" + state.name + "</em>";
       tag.textContent = "Ainda não foi dessa vez";
       tag.className = "tagline nok";
@@ -787,298 +824,6 @@ footer{
     }, 800);
   }
 
-  /* ===== Compartilhar conquista ===== */
-  var lastResult = null;
-
-  function cardMsg(withGrade){
-    var t = lastTemplate;
-    if (withGrade){
-      t = t.split("{media}").join(fmt(lastResult.media));
-    } else {
-      t = t.split("{media} pontos de média").join("pontos de sobra pra aprovação");
-      t = t.split("{media} de média").join("média de aprovação");
-      t = t.split("média de {media}").join("média de aprovação");
-      t = t.split("média foi {media}").join("média foi de aprovação");
-      t = t.split("média {media}").join("média de aprovação");
-      t = t.split("Média {media}").join("Média de aprovação");
-      t = t.split("{media}").join("aprovação");
-    }
-    return t.split("{nome}").join(state.name);
-  }
-
-  function wrapText(ctx, text, maxWidth){
-    var words = text.split(" ");
-    var lines = [], line = "";
-    words.forEach(function(w){
-      var test = line ? line + " " + w : w;
-      if (ctx.measureText(test).width > maxWidth && line){
-        lines.push(line);
-        line = w;
-      } else {
-        line = test;
-      }
-    });
-    if (line) lines.push(line);
-    return lines;
-  }
-
-  function drawTrophy(ctx, cx, cy, s){
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.scale(s, s);
-
-    var g = ctx.createLinearGradient(-80, -100, 80, 60);
-    g.addColorStop(0, "#FF7A00");
-    g.addColorStop(1, "#FFC93C");
-
-    // alcas
-    ctx.lineWidth = 15;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = g;
-    ctx.beginPath();
-    ctx.arc(-82, -52, 30, Math.PI * 1.55, Math.PI * 0.75);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(82, -52, 30, Math.PI * 0.25, Math.PI * 1.45);
-    ctx.stroke();
-
-    // taca
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.moveTo(-68, -95);
-    ctx.lineTo(68, -95);
-    ctx.bezierCurveTo(68, -30, 42, 8, 0, 12);
-    ctx.bezierCurveTo(-42, 8, -68, -30, -68, -95);
-    ctx.closePath();
-    ctx.fill();
-
-    // brilho na taca
-    ctx.strokeStyle = "rgba(255,255,255,.5)";
-    ctx.lineWidth = 7;
-    ctx.beginPath();
-    ctx.moveTo(-46, -80);
-    ctx.quadraticCurveTo(-46, -35, -28, -14);
-    ctx.stroke();
-
-    // haste
-    ctx.fillStyle = g;
-    ctx.fillRect(-9, 10, 18, 24);
-
-    // base
-    ctx.fillStyle = "#122C63";
-    ctx.strokeStyle = "rgba(255,201,60,.7)";
-    ctx.lineWidth = 4;
-    if (ctx.roundRect){
-      ctx.beginPath();
-      ctx.roundRect(-54, 34, 108, 22, 8);
-      ctx.fill(); ctx.stroke();
-    } else {
-      ctx.fillRect(-54, 34, 108, 22);
-      ctx.strokeRect(-54, 34, 108, 22);
-    }
-
-    ctx.restore();
-  }
-
-  function roundedRect(ctx, x, y, w, h, r){
-    if (ctx.roundRect){
-      ctx.beginPath();
-      ctx.roundRect(x, y, w, h, r);
-    } else {
-      ctx.beginPath();
-      ctx.rect(x, y, w, h);
-    }
-  }
-
-  function buildCard(withGrade){
-    var W = 1080, H = 1920;
-    var cv = document.createElement("canvas");
-    cv.width = W; cv.height = H;
-    var ctx = cv.getContext("2d");
-
-    // fundo azul com brilhos
-    var bg = ctx.createLinearGradient(0, 0, 0, H);
-    bg.addColorStop(0, "#0D2350");
-    bg.addColorStop(1, "#081733");
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, W, H);
-
-    var glow = ctx.createRadialGradient(W*0.85, 120, 0, W*0.85, 120, 700);
-    glow.addColorStop(0, "rgba(255,122,0,.25)");
-    glow.addColorStop(1, "rgba(255,122,0,0)");
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, 0, W, H);
-
-    var glow2 = ctx.createRadialGradient(0, H, 0, 0, H, 800);
-    glow2.addColorStop(0, "rgba(30,79,163,.5)");
-    glow2.addColorStop(1, "rgba(30,79,163,0)");
-    ctx.fillStyle = glow2;
-    ctx.fillRect(0, 0, W, H);
-
-    // confetes: poucos, grandes e discretos, so na parte de cima
-    var confColors = ["#FF7A00","#FFC93C","#1E4FA3","#FFFFFF"];
-    for (var i = 0; i < 26; i++){
-      ctx.save();
-      ctx.globalAlpha = 0.14 + Math.random()*0.2;
-      ctx.fillStyle = confColors[i % confColors.length];
-      ctx.translate(60 + Math.random()*(W-120), 60 + Math.random()*560);
-      ctx.rotate(Math.random()*Math.PI);
-      var cw = 10 + Math.random()*12;
-      ctx.fillRect(0, 0, cw, cw*1.8);
-      ctx.restore();
-    }
-
-    // marca no topo
-    ctx.textAlign = "center";
-    ctx.fillStyle = "rgba(242,246,255,.6)";
-    ctx.font = "600 30px Sora, Arial, sans-serif";
-    ctx.fillText("SIMULADOR DE MÉDIA  ·  GESTÃO DE RH", W/2, 128);
-
-    var cx = W/2;
-
-    if (withGrade){
-      // anel com a media
-      var cy = 440, r = 205;
-      ctx.lineCap = "round";
-      ctx.lineWidth = 30;
-      ctx.strokeStyle = "rgba(255,255,255,.12)";
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI*2);
-      ctx.stroke();
-
-      var ringGrad = ctx.createLinearGradient(cx-r, cy-r, cx+r, cy+r);
-      ringGrad.addColorStop(0, "#FF7A00");
-      ringGrad.addColorStop(1, "#FFC93C");
-      ctx.strokeStyle = ringGrad;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, -Math.PI/2, -Math.PI/2 + Math.PI*2*Math.min(lastResult.media,100)/100);
-      ctx.stroke();
-
-      ctx.fillStyle = "#F2F6FF";
-      ctx.font = "800 150px Sora, Arial, sans-serif";
-      ctx.fillText(fmt(lastResult.media), cx, cy + 40);
-      ctx.fillStyle = "rgba(185,199,228,.9)";
-      ctx.font = "600 32px Sora, Arial, sans-serif";
-      ctx.fillText("MÉDIA FINAL", cx, cy + 108);
-    } else {
-      // trofeu grande com brilho, sem anel
-      var ty = 400;
-      var tGlow = ctx.createRadialGradient(cx, ty, 0, cx, ty, 380);
-      tGlow.addColorStop(0, "rgba(255,169,64,.32)");
-      tGlow.addColorStop(1, "rgba(255,169,64,0)");
-      ctx.fillStyle = tGlow;
-      ctx.fillRect(cx-400, ty-400, 800, 800);
-
-      drawTrophy(ctx, cx, ty, 1.9);
-
-      // selo pilula APROVADO!
-      var pillW = 420, pillH = 96, pillY = 596;
-      var pillGrad = ctx.createLinearGradient(cx-pillW/2, 0, cx+pillW/2, 0);
-      pillGrad.addColorStop(0, "#FF7A00");
-      pillGrad.addColorStop(1, "#FFC93C");
-      ctx.fillStyle = pillGrad;
-      roundedRect(ctx, cx-pillW/2, pillY, pillW, pillH, 48);
-      ctx.fill();
-      ctx.fillStyle = "#081733";
-      ctx.font = "800 52px Sora, Arial, sans-serif";
-      ctx.fillText("APROVADO!", cx, pillY + 64);
-    }
-
-    // titulo
-    ctx.font = "800 84px Sora, Arial, sans-serif";
-    var tGrad = ctx.createLinearGradient(W*0.2, 0, W*0.8, 0);
-    tGrad.addColorStop(0, "#FF9633");
-    tGrad.addColorStop(1, "#FFC93C");
-    ctx.fillStyle = tGrad;
-    ctx.fillText("Parabéns, " + state.name + "!", cx, 830);
-
-    ctx.fillStyle = "#2EDB84";
-    ctx.font = "700 38px Sora, Arial, sans-serif";
-    ctx.fillText(lastResult.tag.toUpperCase() + "  ·  " + state.period + "º PERÍODO", cx, 900);
-
-    // mensagem com ajuste automatico de fonte pra caber com folga
-    var pad = 90, boxX = pad, boxW = W - pad*2;
-    var footerY = H - 84;
-    var boxY = 960;
-    var maxBoxH = footerY - 70 - boxY;
-    var text = cardMsg(withGrade);
-
-    var fs = 38, lh, lines;
-    while (fs >= 26){
-      ctx.font = "400 " + fs + "px Inter, Arial, sans-serif";
-      lh = Math.round(fs * 1.52);
-      lines = wrapText(ctx, text, boxW - 100);
-      if (lines.length * lh + 100 <= maxBoxH) break;
-      fs -= 2;
-    }
-    var boxH = lines.length * lh + 100;
-
-    ctx.fillStyle = "rgba(255,255,255,.07)";
-    ctx.strokeStyle = "rgba(255,255,255,.14)";
-    ctx.lineWidth = 3;
-    roundedRect(ctx, boxX, boxY, boxW, boxH, 40);
-    ctx.fill(); ctx.stroke();
-
-    ctx.fillStyle = "#F2F6FF";
-    ctx.textAlign = "left";
-    ctx.font = "400 " + fs + "px Inter, Arial, sans-serif";
-    lines.forEach(function(l, idx){
-      ctx.fillText(l, boxX + 50, boxY + 72 + idx*lh);
-    });
-
-    // rodape em posicao fixa garantida
-    ctx.textAlign = "center";
-    ctx.fillStyle = "rgba(185,199,228,.55)";
-    ctx.font = "500 28px Inter, Arial, sans-serif";
-    ctx.fillText("Aprovação por mérito, conquista pra vida 🧡", cx, footerY);
-
-    return cv;
-  }
-
-  var sheet = $("#share-sheet");
-
-  $("#btn-share").addEventListener("click", function(){
-    vibrate(20);
-    sheet.classList.add("open");
-  });
-  $("#share-cancel").addEventListener("click", function(){ sheet.classList.remove("open"); });
-  sheet.addEventListener("click", function(e){ if (e.target === sheet) sheet.classList.remove("open"); });
-  $("#share-with-grade").addEventListener("click", function(){ sheet.classList.remove("open"); doShare(true); });
-  $("#share-no-grade").addEventListener("click", function(){ sheet.classList.remove("open"); doShare(false); });
-
-  function doShare(withGrade){
-    vibrate(25);
-    var run = function(){
-      var cv;
-      try { cv = buildCard(withGrade); }
-      catch(e){ alert("Não consegui gerar a imagem neste navegador."); return; }
-      cv.toBlob(function(blob){
-        if (!blob){ alert("Não consegui gerar a imagem neste navegador."); return; }
-        var file = new File([blob], "conquista-" + state.name.toLowerCase() + ".png", {type:"image/png"});
-        var shareText = withGrade
-          ? "Passei! Média " + fmt(lastResult.media) + " no " + state.period + "º período de Gestão de RH 🎓🔥"
-          : "Aprovado no " + state.period + "º período de Gestão de RH! 🎓🔥";
-        var shareData = { files: [file], title: "Minha aprovação!", text: shareText };
-        if (navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
-          navigator.share(shareData).catch(function(){});
-        } else {
-          var a = document.createElement("a");
-          a.href = URL.createObjectURL(blob);
-          a.download = file.name;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
-        }
-      }, "image/png");
-    };
-    if (document.fonts && document.fonts.ready){
-      document.fonts.ready.then(run);
-    } else {
-      run();
-    }
-  }
-
   /* ===== Reset ===== */
   $("#btn-again").addEventListener("click", function(){
     vibrate(15);
@@ -1089,9 +834,11 @@ footer{
     vibrate(15);
     inputs.forEach(function(inp){ inp.value = ""; inp.classList.remove("filled"); });
     updateHud();
-    state = { name:"", period:0 };
+    state = { name:"", course:"", period:0 };
     inpName.value = "";
-    $$("#periods .period-chip").forEach(function(c){ c.classList.remove("selected"); });
+    $$("#courses .course-chip").forEach(function(c){ c.classList.remove("selected"); });
+    $("#periods").innerHTML = "";
+    $("#period-field").style.display = "none";
     checkStart();
     show("#screen-welcome");
   });
