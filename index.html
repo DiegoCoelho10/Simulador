@@ -582,16 +582,63 @@ footer{
   });
 
   /* ===== Mensagens por período ===== */
+  var BANK = {
+    1: [
+      "{nome}, olha só o que você fez: média {media} logo no primeiro período! Todo mundo diz que o começo é a parte mais difícil, e é verdade. Novos horários, novas cobranças, aquela dúvida se ia dar conta. Você deu. E deu com nota. O curso de Gestão de RH acabou de ganhar alguém que chegou pra ficar. 💪",
+      "Aprovação confirmada, {nome}! O primeiro período testa mais a coragem do que o conhecimento. É nele que a rotina aperta, que o sono falta e que muita gente desiste. Você não desistiu. Sua média de {media} é a prova de que a decisão de começar foi a decisão certa. 🚀",
+      "{nome}, guarda a sensação de hoje. É a primeira aprovação de muitas. Você equilibrou vida, trabalho e estudo num período em que tudo era novidade, e ainda assim fechou com {media} de média. O alicerce da sua carreira em RH está lançado, e ficou firme. 👏",
+      "Tem gente que espera a vida ficar mais fácil pra começar. Você começou com a vida do jeito que ela é, {nome}, e mesmo assim venceu o primeiro período com média {media}. Isso diz muito sobre o profissional que você está se tornando. O sonho saiu do papel. 🔥",
+      "{nome}, aprovado! E não foi sorte: foi cada noite em que você escolheu estudar quando o corpo pedia descanso. O primeiro período costuma assustar, mas você transformou o medo em {media} pontos de média. Agora ninguém segura. 💥",
+      "Primeira etapa vencida, {nome}! Pode parecer só o começo, mas quem entende de jornada sabe: é o primeiro passo que define se ela acontece. Você deu esse passo com média {media} e mostrou que o lugar de estudante de Gestão de RH é seu por direito. 🎯",
+      "{nome}, respira e comemora. Entre a matrícula e este resultado existiram dúvidas, contas, cansaço e aquela vozinha perguntando se valia a pena. Sua média de {media} acabou de responder: vale, e muito. Bem-vindo oficialmente à jornada. 🌟",
+      "Que estreia, {nome}! Média {media} no período em que tudo era desconhecido: professores novos, matérias novas, rotina nova. Você se adaptou, aprendeu e entregou. Se o primeiro período já foi assim, imagina o que vem pela frente. 💙",
+      "{nome}, o número mais bonito dessa tela não é a média {media}. É o que ela representa: você provou pra si mesmo que consegue. E essa certeza ninguém tira mais. O primeiro período é seu. Os próximos também serão. ✊",
+      "Aprovação no primeiro período, {nome}! Sabe o que isso significa? Que a parte mais difícil, que é começar, já ficou pra trás. Sua média de {media} é o resultado de escolhas silenciosas que ninguém viu você fazer. Hoje elas aparecem. Parabéns! 🎉"
+    ],
+    2: [
+      "{nome}, metade do curso é sua! O segundo período é traiçoeiro: a empolgação do início passa e o diploma ainda parece longe. É aí que muita gente afrouxa. Você acelerou e fechou com média {media}. Agora a conta virou a seu favor: falta menos do que você já andou. 🚀",
+      "Média {media} e o segundo período no bolso, {nome}! Você já domina conceitos de RH que seis meses atrás nem faziam parte do seu vocabulário. Cada semestre vencido é um degrau que ninguém tira. E você acabou de subir mais um. 👏",
+      "{nome}, cinquenta por cento concluído! E não foi um período qualquer: foi aquele em que a rotina já pesava e a novidade já tinha acabado. Sustentar o ritmo é mais difícil que começar, e você sustentou com média {media}. A segunda metade vai te encontrar mais forte. 💪",
+      "Olha a matemática bonita, {nome}: dois períodos concluídos, dois restantes, e uma média de {media} pra provar que você está no controle. O sonho do diploma em Gestão de RH deixou de ser distante. Agora ele tem prazo. 🔥",
+      "{nome}, aprovado no segundo período! Quem te vê fechando média {media} não imagina os malabarismos que você fez pra estar aqui: trabalho, casa, estudo, tudo ao mesmo tempo. Mas você sabe. E é por isso que essa aprovação tem gosto de vitória dobrada. 🌟",
+      "Meio caminho andado, {nome}! E que caminhada: média {media} num período que exige constância, aquela virtude silenciosa que separa quem sonha de quem realiza. Você está realizando. Semestre que vem, a reta final começa a aparecer no horizonte. 🎯",
+      "{nome}, o segundo período acabou de virar história, e com média {media}! Daqui pra frente, cada aula te deixa mais perto do fim do que do começo. Deixa essa ideia te empurrar nos dias difíceis: você já é veterano da própria jornada. ✊",
+      "Metade do diploma já tem seu nome, {nome}. Média {media}, segundo período vencido, e uma certeza crescendo: você não veio experimentar, veio concluir. O RH do futuro agradece. 💙",
+      "{nome}, parabéns! O segundo período é onde a disciplina é testada de verdade, porque a motivação inicial já foi embora e sobrou você com seus compromissos. Você honrou cada um deles e a média {media} está aí pra provar. Bora pra segunda metade! 🚀",
+      "Que consistência, {nome}! Média {media} fechando o segundo período. Se o primeiro foi sobre coragem, este foi sobre persistência. E persistência é exatamente a competência que faz grandes profissionais de RH. Você já pratica o que um dia vai ensinar. 👏"
+    ],
+    3: [
+      "{nome}, dá pra sentir o cheiro da formatura daqui! Terceiro período vencido com média {media}. O sonho não é mais um ponto no horizonte: ele está na próxima curva. Um período. É só o que separa você do diploma. Vai com tudo! 🔥",
+      "Média {media} e o terceiro período conquistado, {nome}! Três quartos da jornada já são seus. Sabe aquela versão sua que um dia teve medo de não conseguir? Ela precisa ver essa tela. Falta tão pouco que já dá pra ensaiar o sorriso da colação. 🎓",
+      "{nome}, aprovado! E agora a contagem mudou: não se fala mais em quanto falta, se fala em quando. Um único período separa você do diploma de Gestão de RH. Sua média de {media} mostra que você chega lá voando. 🚀",
+      "Penúltima etapa vencida, {nome}! Média {media} num período em que o cansaço acumulado costuma cobrar caro. Você pagou o preço e seguiu em frente. Agora deixa a proximidade do fim ser seu combustível: a reta final é sua. ✊",
+      "{nome}, três períodos. Três! Cada um com suas madrugadas, suas provas e suas renúncias. E você atravessou todos, fechando este com {media} de média. O diploma já enxerga você. Mais um semestre e vocês se encontram. 🌟",
+      "Que momento, {nome}! O terceiro período era a última grande subida antes da chegada, e você venceu com média {media}. Daqui do alto já dá pra ver a linha de chegada. Não diminui o ritmo agora: o melhor capítulo é o próximo. 💪",
+      "{nome}, oficialmente na reta final! Média {media}, terceiro período no currículo e uma verdade linda pela frente: a próxima matrícula é a última. Tudo que você abriu mão pra chegar aqui está prestes a fazer sentido completo. 🎯",
+      "Aprovação garantida, {nome}! E das grandes: média {media} no período em que muita gente já está no piloto automático. Você não está. Está mais perto do que nunca, e chegando com qualidade. O quarto período que te aguarde. 🔥",
+      "{nome}, faz as contas comigo: eram quatro períodos, três já têm seu nome, e este veio com média {media}. O sonho que começou tímido lá atrás agora tem data marcada pra virar realidade. Segura a emoção, que a formatura vem. 🎓",
+      "Terceiro período vencido, {nome}! A esta altura você não é mais promessa, é quase um profissional de RH formado. Média {media} confirma: falta muito pouco pro sonho ser realizado. Um empurrão final e o diploma é seu. 💙"
+    ],
+    4: [
+      "{nome}, VOCÊ CONCLUIU O CURSO! Quatro períodos de dedicação transformados em conquista, fechando com média {media}. Ninguém viu as noites difíceis, as renúncias e as vezes em que continuar foi um ato de teimosia. Mas o resultado está aqui e conta essa história por você. O diploma de Gestão de RH é seu. Parabéns! 🎓",
+      "Acabou, {nome}! No melhor sentido possível. A última média entrou: {media}. E com ela se encerra uma jornada que começou com dúvida e termina com diploma. O mercado ganha um profissional que conhece o valor das pessoas porque conheceu o próprio valor no caminho. 👏",
+      "{nome}, formado! Deixa essa palavra assentar: for-ma-do. Média {media} na última etapa de um curso inteiro vencido com garra. Cada obstáculo que tentou te parar virou parte da história que você vai contar. Hoje é dia de celebrar tudo. 🎉",
+      "Que orgulho, {nome}! O quarto período era a última porta, e você acabou de atravessar com média {media}. De hoje em diante, quando alguém perguntar sua formação, a resposta tem nome: Gestão de Recursos Humanos. Conquista sua, de mais ninguém. 🌟",
+      "{nome}, missão cumprida! Média {media} fechando o último período. Lembra do primeiro dia de aula, daquele friozinho de recomeço? Aquela pessoa não imaginava a força que tinha. Você provou. O diploma é a assinatura de quatro períodos de superação. 🎓",
+      "A jornada terminou do jeito que merecia, {nome}: com aprovação e média {media}. Você conciliou vida, trabalho e estudo até a última prova. Agora respira, comemora e recebe o título: profissional de Gestão de RH. O futuro já pode chamar. 🚀",
+      "{nome}, conclusão de curso confirmada! Tem conquista que a gente divide, mas essa madrugada de estudo foi só sua, esse cansaço foi só seu, e essa média de {media} também é só sua. Que a formatura seja do tamanho do esforço: gigante. Parabéns, profissional! 👏",
+      "Fim de jogo, {nome}, e que placar: média {media} no período final! Quatro semestres atrás isso era só um plano. Hoje é currículo, é título, é porta aberta. Você não terminou apenas um curso, você começou uma nova versão da sua carreira. 🔥",
+      "{nome}, oficialmente concluído! A última média foi {media} e com ela vem o direito de olhar pra trás com orgulho: cada aula depois do expediente, cada fim de semana estudando, tudo valeu. O RH ganha alguém que sabe, na prática, o que é superação. 💙",
+      "Parabéns, {nome}! Você fechou o quarto e último período com média {media}. O sonho que um dia pareceu grande demais acabou de caber na sua história. Você é a prova de que a persistência forma mais que profissionais: forma vencedores. 🎓✨"
+    ]
+  };
+
   function approvedMsg(name, period, media){
-    var open = "<b>" + name + "</b>, que orgulho ver seu nome ao lado de uma média " + fmt(media) + "! ";
-    var body = "Ninguém viu as noites em que o cansaço quase venceu, as provas encaradas depois de um dia cheio, as vezes em que você pensou em desistir e escolheu continuar. Mas o resultado está aqui, e ele conta essa história por você. ";
-    var byPeriod = {
-      1: "Você venceu o período mais difícil de todos: o primeiro. É nele que a maioria desiste, e você provou que veio para ficar. A base da sua carreira em Gestão de RH acaba de ser construída, e ela é sólida. O sonho começou, e começou do jeito certo. 💪",
-      2: "Metade do caminho já é sua! O segundo período exigiu mais de você, e você entregou mais ainda. Cada conceito de RH que você domina hoje é um degrau que ninguém tira. Siga firme: a segunda metade da jornada vai ser ainda mais sua. 🚀",
-      3: "Falta tão pouco que dá até para sentir o cheiro da formatura. O terceiro período vencido significa que o sonho não é mais um horizonte distante: ele está logo ali, na próxima curva. Um último período separa você do diploma de Gestão de RH. Vai com tudo! 🔥",
-      4: "Você CONCLUIU o curso de Gestão de Recursos Humanos! Quatro períodos de dedicação, renúncia e persistência se transformaram em conquista. A partir de agora o mercado ganha um profissional que sabe o valor das pessoas porque conhece o próprio valor. Parabéns pela sua formação. O diploma é seu! 🎓👏"
-    };
-    return open + body + (byPeriod[period] || byPeriod[1]);
+    var list = BANK[period] || BANK[1];
+    var pick = list[Math.floor(Math.random() * list.length)];
+    return pick
+      .split("{nome}").join("<b>" + name + "</b>")
+      .split("{media}").join("<b>" + fmt(media) + "</b>");
   }
 
   function failedMsg(name, period, media, sem){
