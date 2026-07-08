@@ -294,6 +294,48 @@ footer{
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
+
+/* folha de compartilhamento */
+.sheet-overlay{
+  position:fixed;inset:0;z-index:50;
+  background:rgba(4,10,25,.72);
+  backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+  display:none;align-items:flex-end;justify-content:center;
+}
+.sheet-overlay.open{display:flex}
+.sheet{
+  width:100%;max-width:480px;
+  background:var(--navy-800);
+  border:1.5px solid var(--card-border);border-bottom:none;
+  border-radius:26px 26px 0 0;
+  padding:24px 20px calc(22px + env(safe-area-inset-bottom));
+  animation:sheetUp .32s cubic-bezier(.22,1,.36,1);
+}
+@keyframes sheetUp{from{transform:translateY(60px);opacity:0}to{transform:none;opacity:1}}
+.sheet h3{
+  font-family:var(--font-display);font-size:17px;font-weight:700;
+  text-align:center;margin-bottom:16px;
+}
+.share-opt{
+  width:100%;display:flex;align-items:center;gap:14px;text-align:left;
+  background:var(--card);border:1.5px solid var(--card-border);
+  border-radius:18px;padding:16px;cursor:pointer;color:var(--ice);
+  transition:transform .15s, border-color .2s;
+  margin-bottom:10px;font-family:var(--font-body);
+}
+.share-opt:active{transform:scale(.98);border-color:var(--orange-500)}
+.share-opt .emo{
+  width:46px;height:46px;border-radius:14px;flex-shrink:0;
+  display:grid;place-items:center;font-size:22px;
+  background:rgba(255,122,0,.16);
+}
+.share-opt b{display:block;font-size:15px;font-family:var(--font-display)}
+.share-opt span{font-size:12.5px;color:var(--ice-dim);line-height:1.4}
+.sheet .cancel{
+  width:100%;padding:14px;margin-top:4px;
+  background:none;border:none;color:var(--ice-dim);
+  font-family:var(--font-display);font-weight:600;font-size:14px;cursor:pointer;
+}
 </style>
 </head>
 <body>
@@ -336,7 +378,7 @@ footer{
       </div>
     </div>
     <button class="btn" id="btn-start" disabled>Começar 🚀</button>
-    <footer>Curso de Gestão de RH · Média para aprovação: 60</footer>
+    <footer>Curso de Gestão de RH · Média para aprovação: 60 · v1.3</footer>
   </section>
 
   <!-- TELA 2 -->
@@ -429,6 +471,21 @@ footer{
     <button class="btn secondary" id="btn-again">Simular de novo 🔄</button>
     <button class="btn secondary" id="btn-restart">Trocar aluno</button>
   </section>
+</div>
+
+<div class="sheet-overlay" id="share-sheet">
+  <div class="sheet">
+    <h3>Como você quer compartilhar? 📲</h3>
+    <button class="share-opt" id="share-with-grade">
+      <span class="emo">💯</span>
+      <div><b>Com a minha média</b><span>Mostra a nota em destaque no card. Pra quem quer ostentar!</span></div>
+    </button>
+    <button class="share-opt" id="share-no-grade">
+      <span class="emo">🏆</span>
+      <div><b>Só a aprovação</b><span>Celebra a conquista sem mostrar a nota. O mérito é o mesmo!</span></div>
+    </button>
+    <button class="cancel" id="share-cancel">Cancelar</button>
+  </div>
 </div>
 
 <script>
@@ -633,9 +690,12 @@ footer{
       "Parabéns, {nome}! Você fechou o quarto e último período com média {media}, e com isso o sonho que um dia pareceu grande demais acabou de caber, inteirinho, dentro da sua história. Teve gente que duvidou, teve dia que conspirou contra, teve cansaço que parecia definitivo. E teve você: acordando, insistindo, entregando, terminando. A colação de grau vai ser um momento, mas a conquista é eterna. Você é a prova viva de que a persistência forma muito mais do que profissionais: forma vencedores. E o mundo do RH acaba de ganhar um. Bem-vindo à sua nova vida, graduado! 🎓✨🎉"
     ]
   };
+  var lastTemplate = "";
+
   function approvedMsg(name, period, media){
     var list = BANK[period] || BANK[1];
     var pick = list[Math.floor(Math.random() * list.length)];
+    lastTemplate = pick;
     return pick
       .split("{nome}").join("<b>" + name + "</b>")
       .split("{media}").join("<b>" + fmt(media) + "</b>");
@@ -730,6 +790,22 @@ footer{
   /* ===== Compartilhar conquista ===== */
   var lastResult = null;
 
+  function cardMsg(withGrade){
+    var t = lastTemplate;
+    if (withGrade){
+      t = t.split("{media}").join(fmt(lastResult.media));
+    } else {
+      t = t.split("{media} pontos de média").join("pontos de sobra pra aprovação");
+      t = t.split("{media} de média").join("média de aprovação");
+      t = t.split("média de {media}").join("média de aprovação");
+      t = t.split("média foi {media}").join("média foi de aprovação");
+      t = t.split("média {media}").join("média de aprovação");
+      t = t.split("Média {media}").join("Média de aprovação");
+      t = t.split("{media}").join("aprovação");
+    }
+    return t.split("{nome}").join(state.name);
+  }
+
   function wrapText(ctx, text, maxWidth){
     var words = text.split(" ");
     var lines = [], line = "";
@@ -746,7 +822,63 @@ footer{
     return lines;
   }
 
-  function buildCard(){
+  function drawTrophy(ctx, cx, cy){
+    var g = ctx.createLinearGradient(cx - 80, cy - 100, cx + 80, cy + 60);
+    g.addColorStop(0, "#FF7A00");
+    g.addColorStop(1, "#FFC93C");
+
+    ctx.save();
+
+    // alças
+    ctx.lineWidth = 15;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = g;
+    ctx.beginPath();
+    ctx.arc(cx - 82, cy - 52, 30, Math.PI * 1.55, Math.PI * 0.75);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx + 82, cy - 52, 30, Math.PI * 0.25, Math.PI * 1.45);
+    ctx.stroke();
+
+    // taça
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(cx - 68, cy - 95);
+    ctx.lineTo(cx + 68, cy - 95);
+    ctx.bezierCurveTo(cx + 68, cy - 30, cx + 42, cy + 8, cx, cy + 12);
+    ctx.bezierCurveTo(cx - 42, cy + 8, cx - 68, cy - 30, cx - 68, cy - 95);
+    ctx.closePath();
+    ctx.fill();
+
+    // brilho sutil na taça
+    ctx.strokeStyle = "rgba(255,255,255,.5)";
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.moveTo(cx - 46, cy - 80);
+    ctx.quadraticCurveTo(cx - 46, cy - 35, cx - 28, cy - 14);
+    ctx.stroke();
+
+    // haste
+    ctx.fillStyle = g;
+    ctx.fillRect(cx - 9, cy + 10, 18, 24);
+
+    // base
+    ctx.fillStyle = "#0D2350";
+    ctx.strokeStyle = "rgba(255,201,60,.55)";
+    ctx.lineWidth = 4;
+    if (ctx.roundRect){
+      ctx.beginPath();
+      ctx.roundRect(cx - 54, cy + 34, 108, 22, 8);
+      ctx.fill(); ctx.stroke();
+    } else {
+      ctx.fillRect(cx - 54, cy + 34, 108, 22);
+      ctx.strokeRect(cx - 54, cy + 34, 108, 22);
+    }
+
+    ctx.restore();
+  }
+
+  function buildCard(withGrade){
     var W = 1080, H = 1920;
     var cv = document.createElement("canvas");
     cv.width = W; cv.height = H;
@@ -803,15 +935,26 @@ footer{
     ringGrad.addColorStop(1, "#FFC93C");
     ctx.strokeStyle = ringGrad;
     ctx.beginPath();
-    ctx.arc(cx, cy, r, -Math.PI/2, -Math.PI/2 + Math.PI*2*Math.min(lastResult.media,100)/100);
+    if (withGrade){
+      ctx.arc(cx, cy, r, -Math.PI/2, -Math.PI/2 + Math.PI*2*Math.min(lastResult.media,100)/100);
+    } else {
+      ctx.arc(cx, cy, r, 0, Math.PI*2);
+    }
     ctx.stroke();
 
-    ctx.fillStyle = "#F2F6FF";
-    ctx.font = "800 150px Sora, Arial, sans-serif";
-    ctx.fillText(fmt(lastResult.media), cx, cy + 40);
-    ctx.fillStyle = "rgba(185,199,228,.9)";
-    ctx.font = "600 32px Sora, Arial, sans-serif";
-    ctx.fillText("MÉDIA FINAL", cx, cy + 105);
+    if (withGrade){
+      ctx.fillStyle = "#F2F6FF";
+      ctx.font = "800 150px Sora, Arial, sans-serif";
+      ctx.fillText(fmt(lastResult.media), cx, cy + 40);
+      ctx.fillStyle = "rgba(185,199,228,.9)";
+      ctx.font = "600 32px Sora, Arial, sans-serif";
+      ctx.fillText("MÉDIA FINAL", cx, cy + 105);
+    } else {
+      drawTrophy(ctx, cx, cy - 25);
+      ctx.fillStyle = "#F2F6FF";
+      ctx.font = "800 58px Sora, Arial, sans-serif";
+      ctx.fillText("APROVADO!", cx, cy + 120);
+    }
 
     // título
     ctx.font = "800 88px Sora, Arial, sans-serif";
@@ -828,7 +971,7 @@ footer{
     // card da mensagem
     var pad = 90, boxX = pad, boxW = W - pad*2;
     ctx.font = "400 36px Inter, Arial, sans-serif";
-    var lines = wrapText(ctx, lastResult.msgPlain, boxW - 100);
+    var lines = wrapText(ctx, cardMsg(withGrade), boxW - 100);
     var lh = 56;
     var boxY = 970, boxH = lines.length * lh + 110;
 
@@ -859,20 +1002,30 @@ footer{
     return cv;
   }
 
+  var sheet = $("#share-sheet");
+
   $("#btn-share").addEventListener("click", function(){
+    vibrate(20);
+    sheet.classList.add("open");
+  });
+  $("#share-cancel").addEventListener("click", function(){ sheet.classList.remove("open"); });
+  sheet.addEventListener("click", function(e){ if (e.target === sheet) sheet.classList.remove("open"); });
+  $("#share-with-grade").addEventListener("click", function(){ sheet.classList.remove("open"); doShare(true); });
+  $("#share-no-grade").addEventListener("click", function(){ sheet.classList.remove("open"); doShare(false); });
+
+  function doShare(withGrade){
     vibrate(25);
     var run = function(){
       var cv;
-      try { cv = buildCard(); }
+      try { cv = buildCard(withGrade); }
       catch(e){ alert("Não consegui gerar a imagem neste navegador."); return; }
       cv.toBlob(function(blob){
         if (!blob){ alert("Não consegui gerar a imagem neste navegador."); return; }
         var file = new File([blob], "conquista-" + state.name.toLowerCase() + ".png", {type:"image/png"});
-        var shareData = {
-          files: [file],
-          title: "Minha aprovação!",
-          text: "Passei! Média " + fmt(lastResult.media) + " no " + state.period + "º período de Gestão de RH 🎓🔥"
-        };
+        var shareText = withGrade
+          ? "Passei! Média " + fmt(lastResult.media) + " no " + state.period + "º período de Gestão de RH 🎓🔥"
+          : "Aprovado no " + state.period + "º período de Gestão de RH! 🎓🔥";
+        var shareData = { files: [file], title: "Minha aprovação!", text: shareText };
         if (navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
           navigator.share(shareData).catch(function(){});
         } else {
@@ -891,7 +1044,7 @@ footer{
     } else {
       run();
     }
-  });
+  }
 
   /* ===== Reset ===== */
   $("#btn-again").addEventListener("click", function(){
