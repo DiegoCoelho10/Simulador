@@ -425,7 +425,8 @@ footer{
       <div class="stat"><b id="st-sem">0</b><span>Semestre</span></div>
       <div class="stat"><b id="st-fin">0</b><span>Integradora</span></div>
     </div>
-    <button class="btn" id="btn-again">Simular de novo 🔄</button>
+    <button class="btn" id="btn-share" style="display:none">Compartilhar conquista 📲</button>
+    <button class="btn secondary" id="btn-again">Simular de novo 🔄</button>
     <button class="btn secondary" id="btn-restart">Trocar aluno</button>
   </section>
 </div>
@@ -667,9 +668,18 @@ footer{
       tag.textContent = state.period === 4 ? "Curso concluído" : "Aprovação garantida";
       tag.className = "tagline ok";
       msg.innerHTML = approvedMsg(state.name, state.period, media);
+      lastResult = {
+        media: media,
+        approved: true,
+        tag: tag.textContent,
+        msgPlain: msg.textContent
+      };
+      $("#btn-share").style.display = "block";
       celebrate();
       vibrate([80,60,80,60,200]);
     } else {
+      lastResult = null;
+      $("#btn-share").style.display = "none";
       title.innerHTML = "Quase lá, <em>" + state.name + "</em>";
       tag.textContent = "Ainda não foi dessa vez";
       tag.className = "tagline nok";
@@ -716,6 +726,172 @@ footer{
       confetti({particleCount:90, spread:100, origin:{y:.4}, colors:colors, scalar:.9});
     }, 800);
   }
+
+  /* ===== Compartilhar conquista ===== */
+  var lastResult = null;
+
+  function wrapText(ctx, text, maxWidth){
+    var words = text.split(" ");
+    var lines = [], line = "";
+    words.forEach(function(w){
+      var test = line ? line + " " + w : w;
+      if (ctx.measureText(test).width > maxWidth && line){
+        lines.push(line);
+        line = w;
+      } else {
+        line = test;
+      }
+    });
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  function buildCard(){
+    var W = 1080, H = 1920;
+    var cv = document.createElement("canvas");
+    cv.width = W; cv.height = H;
+    var ctx = cv.getContext("2d");
+
+    // fundo azul com brilho laranja
+    var bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, "#0D2350");
+    bg.addColorStop(1, "#081733");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    var glow = ctx.createRadialGradient(W*0.85, 120, 0, W*0.85, 120, 700);
+    glow.addColorStop(0, "rgba(255,122,0,.28)");
+    glow.addColorStop(1, "rgba(255,122,0,0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+
+    var glow2 = ctx.createRadialGradient(0, H, 0, 0, H, 800);
+    glow2.addColorStop(0, "rgba(30,79,163,.5)");
+    glow2.addColorStop(1, "rgba(30,79,163,0)");
+    ctx.fillStyle = glow2;
+    ctx.fillRect(0, 0, W, H);
+
+    // confetes decorativos
+    var confColors = ["#FF7A00","#FFC93C","#1E4FA3","#FFFFFF"];
+    for (var i = 0; i < 60; i++){
+      ctx.save();
+      ctx.globalAlpha = 0.25 + Math.random()*0.4;
+      ctx.fillStyle = confColors[i % confColors.length];
+      ctx.translate(Math.random()*W, Math.random()*H*0.45);
+      ctx.rotate(Math.random()*Math.PI);
+      ctx.fillRect(0, 0, 8 + Math.random()*10, 14 + Math.random()*14);
+      ctx.restore();
+    }
+
+    // marca no topo
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(242,246,255,.65)";
+    ctx.font = "600 30px Sora, Arial, sans-serif";
+    ctx.fillText("SIMULADOR DE MÉDIA  ·  GESTÃO DE RH", W/2, 130);
+
+    // anel da medalha
+    var cx = W/2, cy = 460, r = 210;
+    ctx.lineCap = "round";
+    ctx.lineWidth = 30;
+    ctx.strokeStyle = "rgba(255,255,255,.12)";
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI*2);
+    ctx.stroke();
+
+    var ringGrad = ctx.createLinearGradient(cx-r, cy-r, cx+r, cy+r);
+    ringGrad.addColorStop(0, "#FF7A00");
+    ringGrad.addColorStop(1, "#FFC93C");
+    ctx.strokeStyle = ringGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, -Math.PI/2, -Math.PI/2 + Math.PI*2*Math.min(lastResult.media,100)/100);
+    ctx.stroke();
+
+    ctx.fillStyle = "#F2F6FF";
+    ctx.font = "800 150px Sora, Arial, sans-serif";
+    ctx.fillText(fmt(lastResult.media), cx, cy + 40);
+    ctx.fillStyle = "rgba(185,199,228,.9)";
+    ctx.font = "600 32px Sora, Arial, sans-serif";
+    ctx.fillText("MÉDIA FINAL", cx, cy + 105);
+
+    // título
+    ctx.font = "800 88px Sora, Arial, sans-serif";
+    var tGrad = ctx.createLinearGradient(W*0.2, 0, W*0.8, 0);
+    tGrad.addColorStop(0, "#FF9633");
+    tGrad.addColorStop(1, "#FFC93C");
+    ctx.fillStyle = tGrad;
+    ctx.fillText("Parabéns, " + state.name + "!", W/2, 830);
+
+    ctx.fillStyle = "#2EDB84";
+    ctx.font = "700 40px Sora, Arial, sans-serif";
+    ctx.fillText(lastResult.tag.toUpperCase() + "  ·  " + state.period + "º PERÍODO", W/2, 905);
+
+    // card da mensagem
+    var pad = 90, boxX = pad, boxW = W - pad*2;
+    ctx.font = "400 36px Inter, Arial, sans-serif";
+    var lines = wrapText(ctx, lastResult.msgPlain, boxW - 100);
+    var lh = 56;
+    var boxY = 970, boxH = lines.length * lh + 110;
+
+    ctx.fillStyle = "rgba(255,255,255,.07)";
+    ctx.strokeStyle = "rgba(255,255,255,.14)";
+    ctx.lineWidth = 3;
+    if (ctx.roundRect){
+      ctx.beginPath();
+      ctx.roundRect(boxX, boxY, boxW, boxH, 40);
+      ctx.fill(); ctx.stroke();
+    } else {
+      ctx.fillRect(boxX, boxY, boxW, boxH);
+      ctx.strokeRect(boxX, boxY, boxW, boxH);
+    }
+
+    ctx.fillStyle = "#F2F6FF";
+    ctx.textAlign = "left";
+    lines.forEach(function(l, idx){
+      ctx.fillText(l, boxX + 50, boxY + 80 + idx*lh);
+    });
+
+    // rodapé
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(185,199,228,.55)";
+    ctx.font = "500 28px Inter, Arial, sans-serif";
+    ctx.fillText("Aprovação por mérito, conquista pra vida 🧡", W/2, H - 90);
+
+    return cv;
+  }
+
+  $("#btn-share").addEventListener("click", function(){
+    vibrate(25);
+    var run = function(){
+      var cv;
+      try { cv = buildCard(); }
+      catch(e){ alert("Não consegui gerar a imagem neste navegador."); return; }
+      cv.toBlob(function(blob){
+        if (!blob){ alert("Não consegui gerar a imagem neste navegador."); return; }
+        var file = new File([blob], "conquista-" + state.name.toLowerCase() + ".png", {type:"image/png"});
+        var shareData = {
+          files: [file],
+          title: "Minha aprovação!",
+          text: "Passei! Média " + fmt(lastResult.media) + " no " + state.period + "º período de Gestão de RH 🎓🔥"
+        };
+        if (navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
+          navigator.share(shareData).catch(function(){});
+        } else {
+          var a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = file.name;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+        }
+      }, "image/png");
+    };
+    if (document.fonts && document.fonts.ready){
+      document.fonts.ready.then(run);
+    } else {
+      run();
+    }
+  });
 
   /* ===== Reset ===== */
   $("#btn-again").addEventListener("click", function(){
