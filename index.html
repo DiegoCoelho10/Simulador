@@ -822,60 +822,72 @@ footer{
     return lines;
   }
 
-  function drawTrophy(ctx, cx, cy){
-    var g = ctx.createLinearGradient(cx - 80, cy - 100, cx + 80, cy + 60);
+  function drawTrophy(ctx, cx, cy, s){
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(s, s);
+
+    var g = ctx.createLinearGradient(-80, -100, 80, 60);
     g.addColorStop(0, "#FF7A00");
     g.addColorStop(1, "#FFC93C");
 
-    ctx.save();
-
-    // alças
+    // alcas
     ctx.lineWidth = 15;
     ctx.lineCap = "round";
     ctx.strokeStyle = g;
     ctx.beginPath();
-    ctx.arc(cx - 82, cy - 52, 30, Math.PI * 1.55, Math.PI * 0.75);
+    ctx.arc(-82, -52, 30, Math.PI * 1.55, Math.PI * 0.75);
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(cx + 82, cy - 52, 30, Math.PI * 0.25, Math.PI * 1.45);
+    ctx.arc(82, -52, 30, Math.PI * 0.25, Math.PI * 1.45);
     ctx.stroke();
 
-    // taça
+    // taca
     ctx.fillStyle = g;
     ctx.beginPath();
-    ctx.moveTo(cx - 68, cy - 95);
-    ctx.lineTo(cx + 68, cy - 95);
-    ctx.bezierCurveTo(cx + 68, cy - 30, cx + 42, cy + 8, cx, cy + 12);
-    ctx.bezierCurveTo(cx - 42, cy + 8, cx - 68, cy - 30, cx - 68, cy - 95);
+    ctx.moveTo(-68, -95);
+    ctx.lineTo(68, -95);
+    ctx.bezierCurveTo(68, -30, 42, 8, 0, 12);
+    ctx.bezierCurveTo(-42, 8, -68, -30, -68, -95);
     ctx.closePath();
     ctx.fill();
 
-    // brilho sutil na taça
+    // brilho na taca
     ctx.strokeStyle = "rgba(255,255,255,.5)";
     ctx.lineWidth = 7;
     ctx.beginPath();
-    ctx.moveTo(cx - 46, cy - 80);
-    ctx.quadraticCurveTo(cx - 46, cy - 35, cx - 28, cy - 14);
+    ctx.moveTo(-46, -80);
+    ctx.quadraticCurveTo(-46, -35, -28, -14);
     ctx.stroke();
 
     // haste
     ctx.fillStyle = g;
-    ctx.fillRect(cx - 9, cy + 10, 18, 24);
+    ctx.fillRect(-9, 10, 18, 24);
 
     // base
-    ctx.fillStyle = "#0D2350";
-    ctx.strokeStyle = "rgba(255,201,60,.55)";
+    ctx.fillStyle = "#122C63";
+    ctx.strokeStyle = "rgba(255,201,60,.7)";
     ctx.lineWidth = 4;
     if (ctx.roundRect){
       ctx.beginPath();
-      ctx.roundRect(cx - 54, cy + 34, 108, 22, 8);
+      ctx.roundRect(-54, 34, 108, 22, 8);
       ctx.fill(); ctx.stroke();
     } else {
-      ctx.fillRect(cx - 54, cy + 34, 108, 22);
-      ctx.strokeRect(cx - 54, cy + 34, 108, 22);
+      ctx.fillRect(-54, 34, 108, 22);
+      ctx.strokeRect(-54, 34, 108, 22);
     }
 
     ctx.restore();
+  }
+
+  function roundedRect(ctx, x, y, w, h, r){
+    if (ctx.roundRect){
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, r);
+    } else {
+      ctx.beginPath();
+      ctx.rect(x, y, w, h);
+    }
   }
 
   function buildCard(withGrade){
@@ -884,7 +896,7 @@ footer{
     cv.width = W; cv.height = H;
     var ctx = cv.getContext("2d");
 
-    // fundo azul com brilho laranja
+    // fundo azul com brilhos
     var bg = ctx.createLinearGradient(0, 0, 0, H);
     bg.addColorStop(0, "#0D2350");
     bg.addColorStop(1, "#081733");
@@ -892,7 +904,7 @@ footer{
     ctx.fillRect(0, 0, W, H);
 
     var glow = ctx.createRadialGradient(W*0.85, 120, 0, W*0.85, 120, 700);
-    glow.addColorStop(0, "rgba(255,122,0,.28)");
+    glow.addColorStop(0, "rgba(255,122,0,.25)");
     glow.addColorStop(1, "rgba(255,122,0,0)");
     ctx.fillStyle = glow;
     ctx.fillRect(0, 0, W, H);
@@ -903,101 +915,122 @@ footer{
     ctx.fillStyle = glow2;
     ctx.fillRect(0, 0, W, H);
 
-    // confetes decorativos
+    // confetes: poucos, grandes e discretos, so na parte de cima
     var confColors = ["#FF7A00","#FFC93C","#1E4FA3","#FFFFFF"];
-    for (var i = 0; i < 60; i++){
+    for (var i = 0; i < 26; i++){
       ctx.save();
-      ctx.globalAlpha = 0.25 + Math.random()*0.4;
+      ctx.globalAlpha = 0.14 + Math.random()*0.2;
       ctx.fillStyle = confColors[i % confColors.length];
-      ctx.translate(Math.random()*W, Math.random()*H*0.45);
+      ctx.translate(60 + Math.random()*(W-120), 60 + Math.random()*560);
       ctx.rotate(Math.random()*Math.PI);
-      ctx.fillRect(0, 0, 8 + Math.random()*10, 14 + Math.random()*14);
+      var cw = 10 + Math.random()*12;
+      ctx.fillRect(0, 0, cw, cw*1.8);
       ctx.restore();
     }
 
     // marca no topo
     ctx.textAlign = "center";
-    ctx.fillStyle = "rgba(242,246,255,.65)";
+    ctx.fillStyle = "rgba(242,246,255,.6)";
     ctx.font = "600 30px Sora, Arial, sans-serif";
-    ctx.fillText("SIMULADOR DE MÉDIA  ·  GESTÃO DE RH", W/2, 130);
+    ctx.fillText("SIMULADOR DE MÉDIA  ·  GESTÃO DE RH", W/2, 128);
 
-    // anel da medalha
-    var cx = W/2, cy = 460, r = 210;
-    ctx.lineCap = "round";
-    ctx.lineWidth = 30;
-    ctx.strokeStyle = "rgba(255,255,255,.12)";
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI*2);
-    ctx.stroke();
+    var cx = W/2;
 
-    var ringGrad = ctx.createLinearGradient(cx-r, cy-r, cx+r, cy+r);
-    ringGrad.addColorStop(0, "#FF7A00");
-    ringGrad.addColorStop(1, "#FFC93C");
-    ctx.strokeStyle = ringGrad;
-    ctx.beginPath();
     if (withGrade){
-      ctx.arc(cx, cy, r, -Math.PI/2, -Math.PI/2 + Math.PI*2*Math.min(lastResult.media,100)/100);
-    } else {
+      // anel com a media
+      var cy = 440, r = 205;
+      ctx.lineCap = "round";
+      ctx.lineWidth = 30;
+      ctx.strokeStyle = "rgba(255,255,255,.12)";
+      ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI*2);
-    }
-    ctx.stroke();
+      ctx.stroke();
 
-    if (withGrade){
+      var ringGrad = ctx.createLinearGradient(cx-r, cy-r, cx+r, cy+r);
+      ringGrad.addColorStop(0, "#FF7A00");
+      ringGrad.addColorStop(1, "#FFC93C");
+      ctx.strokeStyle = ringGrad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, -Math.PI/2, -Math.PI/2 + Math.PI*2*Math.min(lastResult.media,100)/100);
+      ctx.stroke();
+
       ctx.fillStyle = "#F2F6FF";
       ctx.font = "800 150px Sora, Arial, sans-serif";
       ctx.fillText(fmt(lastResult.media), cx, cy + 40);
       ctx.fillStyle = "rgba(185,199,228,.9)";
       ctx.font = "600 32px Sora, Arial, sans-serif";
-      ctx.fillText("MÉDIA FINAL", cx, cy + 105);
+      ctx.fillText("MÉDIA FINAL", cx, cy + 108);
     } else {
-      drawTrophy(ctx, cx, cy - 25);
-      ctx.fillStyle = "#F2F6FF";
-      ctx.font = "800 58px Sora, Arial, sans-serif";
-      ctx.fillText("APROVADO!", cx, cy + 120);
+      // trofeu grande com brilho, sem anel
+      var ty = 400;
+      var tGlow = ctx.createRadialGradient(cx, ty, 0, cx, ty, 380);
+      tGlow.addColorStop(0, "rgba(255,169,64,.32)");
+      tGlow.addColorStop(1, "rgba(255,169,64,0)");
+      ctx.fillStyle = tGlow;
+      ctx.fillRect(cx-400, ty-400, 800, 800);
+
+      drawTrophy(ctx, cx, ty, 1.9);
+
+      // selo pilula APROVADO!
+      var pillW = 420, pillH = 96, pillY = 596;
+      var pillGrad = ctx.createLinearGradient(cx-pillW/2, 0, cx+pillW/2, 0);
+      pillGrad.addColorStop(0, "#FF7A00");
+      pillGrad.addColorStop(1, "#FFC93C");
+      ctx.fillStyle = pillGrad;
+      roundedRect(ctx, cx-pillW/2, pillY, pillW, pillH, 48);
+      ctx.fill();
+      ctx.fillStyle = "#081733";
+      ctx.font = "800 52px Sora, Arial, sans-serif";
+      ctx.fillText("APROVADO!", cx, pillY + 64);
     }
 
-    // título
-    ctx.font = "800 88px Sora, Arial, sans-serif";
+    // titulo
+    ctx.font = "800 84px Sora, Arial, sans-serif";
     var tGrad = ctx.createLinearGradient(W*0.2, 0, W*0.8, 0);
     tGrad.addColorStop(0, "#FF9633");
     tGrad.addColorStop(1, "#FFC93C");
     ctx.fillStyle = tGrad;
-    ctx.fillText("Parabéns, " + state.name + "!", W/2, 830);
+    ctx.fillText("Parabéns, " + state.name + "!", cx, 830);
 
     ctx.fillStyle = "#2EDB84";
-    ctx.font = "700 40px Sora, Arial, sans-serif";
-    ctx.fillText(lastResult.tag.toUpperCase() + "  ·  " + state.period + "º PERÍODO", W/2, 905);
+    ctx.font = "700 38px Sora, Arial, sans-serif";
+    ctx.fillText(lastResult.tag.toUpperCase() + "  ·  " + state.period + "º PERÍODO", cx, 900);
 
-    // card da mensagem
+    // mensagem com ajuste automatico de fonte pra caber com folga
     var pad = 90, boxX = pad, boxW = W - pad*2;
-    ctx.font = "400 36px Inter, Arial, sans-serif";
-    var lines = wrapText(ctx, cardMsg(withGrade), boxW - 100);
-    var lh = 56;
-    var boxY = 970, boxH = lines.length * lh + 110;
+    var footerY = H - 84;
+    var boxY = 960;
+    var maxBoxH = footerY - 70 - boxY;
+    var text = cardMsg(withGrade);
+
+    var fs = 38, lh, lines;
+    while (fs >= 26){
+      ctx.font = "400 " + fs + "px Inter, Arial, sans-serif";
+      lh = Math.round(fs * 1.52);
+      lines = wrapText(ctx, text, boxW - 100);
+      if (lines.length * lh + 100 <= maxBoxH) break;
+      fs -= 2;
+    }
+    var boxH = lines.length * lh + 100;
 
     ctx.fillStyle = "rgba(255,255,255,.07)";
     ctx.strokeStyle = "rgba(255,255,255,.14)";
     ctx.lineWidth = 3;
-    if (ctx.roundRect){
-      ctx.beginPath();
-      ctx.roundRect(boxX, boxY, boxW, boxH, 40);
-      ctx.fill(); ctx.stroke();
-    } else {
-      ctx.fillRect(boxX, boxY, boxW, boxH);
-      ctx.strokeRect(boxX, boxY, boxW, boxH);
-    }
+    roundedRect(ctx, boxX, boxY, boxW, boxH, 40);
+    ctx.fill(); ctx.stroke();
 
     ctx.fillStyle = "#F2F6FF";
     ctx.textAlign = "left";
+    ctx.font = "400 " + fs + "px Inter, Arial, sans-serif";
     lines.forEach(function(l, idx){
-      ctx.fillText(l, boxX + 50, boxY + 80 + idx*lh);
+      ctx.fillText(l, boxX + 50, boxY + 72 + idx*lh);
     });
 
-    // rodapé
+    // rodape em posicao fixa garantida
     ctx.textAlign = "center";
     ctx.fillStyle = "rgba(185,199,228,.55)";
     ctx.font = "500 28px Inter, Arial, sans-serif";
-    ctx.fillText("Aprovação por mérito, conquista pra vida 🧡", W/2, H - 90);
+    ctx.fillText("Aprovação por mérito, conquista pra vida 🧡", cx, footerY);
 
     return cv;
   }
